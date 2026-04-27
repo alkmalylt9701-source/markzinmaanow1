@@ -14,7 +14,136 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      hifz_history: {
+        Row: {
+          student_id: number
+          user_id: string
+          value: string
+          year_key: string
+        }
+        Insert: {
+          student_id: number
+          user_id: string
+          value?: string
+          year_key: string
+        }
+        Update: {
+          student_id?: number
+          user_id?: string
+          value?: string
+          year_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hifz_history_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      students: {
+        Row: {
+          created_at: string
+          id: number
+          name: string
+          teacher: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          name: string
+          teacher?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          name?: string
+          teacher?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_settings: {
+        Row: {
+          active_year: string
+          user_id: string
+        }
+        Insert: {
+          active_year?: string
+          user_id: string
+        }
+        Update: {
+          active_year?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      year_data: {
+        Row: {
+          annual: string
+          base_hifz: string
+          grade: string
+          memorization: string
+          parts: string
+          prize: string
+          rank: string
+          recitation: string
+          status_prize: string
+          student_id: number
+          teacher: string
+          total: string
+          total_hifz: string
+          user_id: string
+          year: string
+        }
+        Insert: {
+          annual?: string
+          base_hifz?: string
+          grade?: string
+          memorization?: string
+          parts?: string
+          prize?: string
+          rank?: string
+          recitation?: string
+          status_prize?: string
+          student_id: number
+          teacher?: string
+          total?: string
+          total_hifz?: string
+          user_id: string
+          year: string
+        }
+        Update: {
+          annual?: string
+          base_hifz?: string
+          grade?: string
+          memorization?: string
+          parts?: string
+          prize?: string
+          rank?: string
+          recitation?: string
+          status_prize?: string
+          student_id?: number
+          teacher?: string
+          total?: string
+          total_hifz?: string
+          user_id?: string
+          year?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "year_data_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
