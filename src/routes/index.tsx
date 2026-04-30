@@ -129,6 +129,7 @@ function IndexPage() {
     } finally {
       savingRef.current = false;
       setSaving(false);
+      setTimeout(() => setSaveProgress(null), 800);
     }
   }, [currentYear]);
 
