@@ -30,6 +30,7 @@ function IndexPage() {
   const [saving, setSaving] = useState(false);
   const [dirtyMap, setDirtyMap] = useState<Record<number, DirtyData>>({});
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [saveProgress, setSaveProgress] = useState<{ current: number; total: number } | null>(null);
   const dirtyMapRef = useRef(dirtyMap);
   const studentsRef = useRef(students);
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
