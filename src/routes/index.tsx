@@ -9,7 +9,7 @@ import logo from "@/assets/logo.png";
 import { Student, HifzHistory, YearData, START_YEAR, END_YEAR } from "@/types/student";
 import {
   loadAllStudentsWithData, saveStudent, deleteAllStudents, deleteStudent,
-  getActiveYear, setActiveYear, saveHifzHistory, saveYearData,
+  getActiveYear, setActiveYear, saveHifzHistory, saveYearData, DuplicateNameError,
 } from "@/utils/storage";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
@@ -60,18 +60,45 @@ function IndexPage() {
     setSaving(true);
     try {
       const entries = Object.entries(dirtyMap);
-      await Promise.all(entries.map(async ([idStr, d]) => {
+      // التحقق من التكرار محلياً قبل الحفظ
+      const namesSeen = new Map<string, number>();
+      for (const [idStr, d] of entries) {
+        const n = (d.name || '').trim();
+        if (!n) continue;
+        if (namesSeen.has(n)) {
+          toast.error(`الاسم "${n}" مكرر في الجدول`);
+          setSaving(false);
+          return;
+        }
+        namesSeen.set(n, parseInt(idStr));
+      }
+      // التحقق ضد الطالبات الموجودات (غير المعدّلات)
+      for (const s of students) {
+        if (dirtyMap[s.id]) continue;
+        const existingName = (s.name || '').trim();
+        if (existingName && namesSeen.has(existingName)) {
+          toast.error(`الاسم "${existingName}" موجود مسبقاً`);
+          setSaving(false);
+          return;
+        }
+      }
+
+      for (const [idStr, d] of entries) {
         const id = parseInt(idStr);
         await saveStudent({ id, name: d.name, teacher: d.teacher });
         await saveHifzHistory(id, d.history);
         await saveYearData(currentYear, id, d.yearData);
-      }));
+      }
       setDirtyMap({});
       await loadData();
       toast.success(`تم حفظ بيانات ${entries.length} طالبة`);
     } catch (err) {
-      console.error(err);
-      toast.error("حدث خطأ أثناء الحفظ");
+      if (err instanceof DuplicateNameError) {
+        toast.error(err.message);
+      } else {
+        console.error(err);
+        toast.error("حدث خطأ أثناء الحفظ");
+      }
     } finally {
       setSaving(false);
     }

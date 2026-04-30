@@ -55,17 +55,34 @@ export const loadGlobalStudents = async (): Promise<Student[]> => {
   return (data || []).map((s) => ({ id: s.id, name: s.name, teacher: s.teacher }));
 };
 
+export class DuplicateNameError extends Error {
+  constructor() { super('اسم الطالبة موجود مسبقاً'); this.name = 'DuplicateNameError'; }
+}
+
 export const saveStudent = async (student: { id?: number; name: string; teacher: string }): Promise<number | null> => {
   const userId = await getUserId();
   if (!userId) return null;
 
+  const name = (student.name || '').trim();
+
   if (student.id) {
-    const { error } = await supabase.from('students').update({ name: student.name, teacher: student.teacher }).eq('id', student.id).eq('user_id', userId);
-    if (error) { console.error(error); return null; }
+    const { error } = await supabase.from('students').update({ name, teacher: student.teacher }).eq('id', student.id).eq('user_id', userId);
+    if (error) {
+      if (error.code === '23505') throw new DuplicateNameError();
+      console.error(error); return null;
+    }
     return student.id;
   } else {
-    const { data, error } = await supabase.from('students').insert({ user_id: userId, name: student.name || '', teacher: student.teacher || '' }).select('id').single();
-    if (error) { console.error(error); return null; }
+    if (!name) {
+      const { data, error } = await supabase.from('students').insert({ user_id: userId, name: '', teacher: student.teacher || '' }).select('id').single();
+      if (error) { console.error(error); return null; }
+      return data.id;
+    }
+    const { data, error } = await supabase.from('students').insert({ user_id: userId, name, teacher: student.teacher || '' }).select('id').single();
+    if (error) {
+      if (error.code === '23505') throw new DuplicateNameError();
+      console.error(error); return null;
+    }
     return data.id;
   }
 };
