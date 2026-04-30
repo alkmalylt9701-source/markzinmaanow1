@@ -17,6 +17,8 @@ export const ImportExport = ({ onDataImported }: Props) => {
     const students = await loadGlobalStudents();
     if (students.length === 0) { toast.error("لا توجد بيانات لتصديرها"); return; }
     const exportData: Record<string, unknown>[] = [];
+    setProgress({ label: 'جارٍ التصدير', current: 0, total: students.length });
+    let i = 0;
     for (const s of students) {
       const history = await loadHifzHistory(s.id);
       const row: Record<string, unknown> = {
@@ -38,6 +40,8 @@ export const ImportExport = ({ onDataImported }: Props) => {
         }
       }
       exportData.push(row);
+      i++;
+      setProgress({ label: 'جارٍ التصدير', current: i, total: students.length });
     }
     const ws = XLSX.utils.json_to_sheet(exportData);
     const wb = XLSX.utils.book_new();
@@ -45,6 +49,7 @@ export const ImportExport = ({ onDataImported }: Props) => {
     ws['!cols'] = Object.keys(exportData[0] || {}).map(() => ({ wch: 20 }));
     XLSX.writeFile(wb, `بيانات_المسابقة_${new Date().toISOString().split('T')[0]}.xlsx`);
     toast.success(`تم تصدير بيانات ${students.length} طالبة`);
+    setTimeout(() => setProgress(null), 800);
   };
 
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
