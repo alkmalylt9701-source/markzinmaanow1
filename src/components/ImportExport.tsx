@@ -144,6 +144,15 @@ export const ImportExport = ({ onDataImported }: Props) => {
               <Download className="h-3 w-3" /> تصدير
             </Button>
           </div>
+          {progress && (
+            <div className="space-y-1 bg-primary/5 border border-primary/20 rounded-md p-2">
+              <div className="flex justify-between items-center text-xs text-primary font-semibold">
+                <span>🔄 {progress.label}: {progress.current} / {progress.total}</span>
+                <span>{Math.round((progress.current / Math.max(progress.total, 1)) * 100)}%</span>
+              </div>
+              <Progress value={(progress.current / Math.max(progress.total, 1)) * 100} className="h-2" />
+            </div>
+          )}
           <p className="text-xs text-muted-foreground">📝 نزّل القالب، عبّئ البيانات، ثم استورده.</p>
         </div>
       )}
