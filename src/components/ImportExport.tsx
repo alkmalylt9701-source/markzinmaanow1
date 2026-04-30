@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { Upload, Download, FileSpreadsheet, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 import * as XLSX from 'xlsx';
@@ -10,11 +11,14 @@ interface Props { onDataImported: () => void; }
 
 export const ImportExport = ({ onDataImported }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [progress, setProgress] = useState<{ label: string; current: number; total: number } | null>(null);
 
   const handleExport = async () => {
     const students = await loadGlobalStudents();
     if (students.length === 0) { toast.error("لا توجد بيانات لتصديرها"); return; }
     const exportData: Record<string, unknown>[] = [];
+    setProgress({ label: 'جارٍ التصدير', current: 0, total: students.length });
+    let i = 0;
     for (const s of students) {
       const history = await loadHifzHistory(s.id);
       const row: Record<string, unknown> = {
@@ -36,6 +40,8 @@ export const ImportExport = ({ onDataImported }: Props) => {
         }
       }
       exportData.push(row);
+      i++;
+      setProgress({ label: 'جارٍ التصدير', current: i, total: students.length });
     }
     const ws = XLSX.utils.json_to_sheet(exportData);
     const wb = XLSX.utils.book_new();
@@ -43,6 +49,7 @@ export const ImportExport = ({ onDataImported }: Props) => {
     ws['!cols'] = Object.keys(exportData[0] || {}).map(() => ({ wch: 20 }));
     XLSX.writeFile(wb, `بيانات_المسابقة_${new Date().toISOString().split('T')[0]}.xlsx`);
     toast.success(`تم تصدير بيانات ${students.length} طالبة`);
+    setTimeout(() => setProgress(null), 800);
   };
 
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,14 +63,17 @@ export const ImportExport = ({ onDataImported }: Props) => {
         if (json.length === 0) { toast.error("الملف فارغ"); return; }
         let imported = 0, updated = 0;
         const existing = await loadGlobalStudents();
+        const total = json.length;
+        setProgress({ label: 'جارٍ الاستيراد', current: 0, total });
+        let processed = 0;
         for (const row of json) {
           const name = String(row['الاسم'] || '').trim();
-          if (!name) continue;
+          if (!name) { processed++; setProgress({ label: 'جارٍ الاستيراد', current: processed, total }); continue; }
           let studentId: number;
           const found = existing.find((s) => s.name === name);
           if (!found) {
             const id = await saveStudent({ name, teacher: '' });
-            if (!id) continue;
+            if (!id) { processed++; setProgress({ label: 'جارٍ الاستيراد', current: processed, total }); continue; }
             studentId = id; imported++;
           } else { studentId = found.id; updated++; }
           const history = await loadHifzHistory(studentId);
@@ -80,12 +90,16 @@ export const ImportExport = ({ onDataImported }: Props) => {
             if (row[`حفظ_درجة_${y}`] !== undefined) { yd.memorization = String(row[`حفظ_درجة_${y}`]); has = true; }
             if (has) await saveYearData(y.toString(), studentId, yd);
           }
+          processed++;
+          setProgress({ label: 'جارٍ الاستيراد', current: processed, total });
         }
         onDataImported();
         toast.success(`تم استيراد ${imported} طالبة جديدة وتحديث ${updated} طالبة`);
       } catch (err) {
         console.error(err);
         toast.error("خطأ في الاستيراد، تأكد من تنسيق ملف Excel");
+      } finally {
+        setTimeout(() => setProgress(null), 800);
       }
     };
     reader.readAsBinaryString(file);
@@ -130,6 +144,15 @@ export const ImportExport = ({ onDataImported }: Props) => {
               <Download className="h-3 w-3" /> تصدير
             </Button>
           </div>
+          {progress && (
+            <div className="space-y-1 bg-primary/5 border border-primary/20 rounded-md p-2">
+              <div className="flex justify-between items-center text-xs text-primary font-semibold">
+                <span>🔄 {progress.label}: {progress.current} / {progress.total}</span>
+                <span>{Math.round((progress.current / Math.max(progress.total, 1)) * 100)}%</span>
+              </div>
+              <Progress value={(progress.current / Math.max(progress.total, 1)) * 100} className="h-2" />
+            </div>
+          )}
           <p className="text-xs text-muted-foreground">📝 نزّل القالب، عبّئ البيانات، ثم استورده.</p>
         </div>
       )}

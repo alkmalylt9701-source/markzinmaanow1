@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CompetitionTable } from "@/components/CompetitionTable";
 import { ImportExport } from "@/components/ImportExport";
 import { Plus, Printer, Trash2, Calendar, LogOut, Save } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import logo from "@/assets/logo.png";
 import { Student, HifzHistory, YearData, START_YEAR, END_YEAR } from "@/types/student";
 import {
@@ -29,6 +30,7 @@ function IndexPage() {
   const [saving, setSaving] = useState(false);
   const [dirtyMap, setDirtyMap] = useState<Record<number, DirtyData>>({});
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [saveProgress, setSaveProgress] = useState<{ current: number; total: number } | null>(null);
   const dirtyMapRef = useRef(dirtyMap);
   const studentsRef = useRef(students);
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -92,11 +94,16 @@ function IndexPage() {
         }
       }
 
+      const total = entries.length;
+      setSaveProgress({ current: 0, total });
+      let done = 0;
       for (const [idStr, d] of entries) {
         const id = parseInt(idStr);
         await saveStudent({ id, name: d.name, teacher: d.teacher });
         await saveHifzHistory(id, d.history);
         await saveYearData(currentYear, id, d.yearData);
+        done++;
+        setSaveProgress({ current: done, total });
       }
       // إزالة المحفوظ فقط (قد تكون أضيفت تغييرات جديدة أثناء الحفظ)
       setDirtyMap((prev) => {
@@ -122,6 +129,7 @@ function IndexPage() {
     } finally {
       savingRef.current = false;
       setSaving(false);
+      setTimeout(() => setSaveProgress(null), 800);
     }
   }, [currentYear]);
 
@@ -271,11 +279,16 @@ function IndexPage() {
               <Trash2 className="h-4 w-4" /> حذف جميع البيانات
             </Button>
 
-            <div className="mr-auto text-sm text-muted-foreground flex flex-col items-end gap-0.5">
+            <div className="mr-auto text-sm text-muted-foreground flex flex-col items-end gap-1 min-w-[200px]">
               <span>عدد الطالبات: <span className="font-bold text-foreground">{students.length}</span></span>
               <span className="text-xs">
-                {saving ? '🔄 جارٍ الحفظ التلقائي...' : isDirty ? '✏️ تغييرات غير محفوظة...' : lastSaved ? `✓ تم الحفظ ${lastSaved.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}` : '✓ كل البيانات محفوظة'}
+                {saving && saveProgress
+                  ? `🔄 جارٍ المزامنة ${saveProgress.current}/${saveProgress.total} (${Math.round((saveProgress.current / saveProgress.total) * 100)}%)`
+                  : isDirty ? `✏️ ${Object.keys(dirtyMap).length} تغيير غير محفوظ...` : lastSaved ? `✓ تم الحفظ ${lastSaved.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}` : '✓ كل البيانات محفوظة'}
               </span>
+              {saveProgress && saveProgress.total > 0 && (
+                <Progress value={(saveProgress.current / saveProgress.total) * 100} className="h-1.5 w-full" />
+              )}
             </div>
           </div>
         </div>
