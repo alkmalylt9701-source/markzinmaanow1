@@ -9,7 +9,7 @@ import logo from "@/assets/logo.png";
 import { Student, HifzHistory, YearData, START_YEAR, END_YEAR } from "@/types/student";
 import {
   loadAllStudentsWithData, saveStudent, deleteAllStudents, deleteStudent,
-  getActiveYear, setActiveYear, saveHifzHistory, saveYearData,
+  getActiveYear, setActiveYear, saveHifzHistory, saveYearData, DuplicateNameError,
 } from "@/utils/storage";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
