@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { Upload, Download, FileSpreadsheet, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 import * as XLSX from 'xlsx';
@@ -10,6 +11,7 @@ interface Props { onDataImported: () => void; }
 
 export const ImportExport = ({ onDataImported }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [progress, setProgress] = useState<{ label: string; current: number; total: number } | null>(null);
 
   const handleExport = async () => {
     const students = await loadGlobalStudents();
