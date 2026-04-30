@@ -257,9 +257,9 @@ function IndexPage() {
               <Plus className="h-4 w-4" /> إضافة طالبة جديدة
             </Button>
 
-            <Button onClick={handleSaveAll} disabled={!isDirty || saving} className={`gap-2 ${isDirty ? 'animate-pulse bg-success hover:bg-success/90 text-success-foreground' : ''}`}>
+            <Button onClick={handleSaveAll} disabled={!isDirty || saving} variant={isDirty ? "default" : "secondary"} className="gap-2">
               <Save className="h-4 w-4" />
-              {saving ? 'جارٍ الحفظ...' : 'حفظ التغييرات'}
+              {saving ? 'جارٍ الحفظ...' : isDirty ? 'حفظ الآن' : 'محفوظ'}
               {isDirty && <span className="bg-white/20 rounded-full px-2 py-0.5 text-xs">{Object.keys(dirtyMap).length}</span>}
             </Button>
 
@@ -271,8 +271,11 @@ function IndexPage() {
               <Trash2 className="h-4 w-4" /> حذف جميع البيانات
             </Button>
 
-            <div className="mr-auto text-sm text-muted-foreground">
-              عدد الطالبات: <span className="font-bold text-foreground">{students.length}</span>
+            <div className="mr-auto text-sm text-muted-foreground flex flex-col items-end gap-0.5">
+              <span>عدد الطالبات: <span className="font-bold text-foreground">{students.length}</span></span>
+              <span className="text-xs">
+                {saving ? '🔄 جارٍ الحفظ التلقائي...' : isDirty ? '✏️ تغييرات غير محفوظة...' : lastSaved ? `✓ تم الحفظ ${lastSaved.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}` : '✓ كل البيانات محفوظة'}
+              </span>
             </div>
           </div>
         </div>
