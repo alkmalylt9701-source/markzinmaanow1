@@ -279,11 +279,16 @@ function IndexPage() {
               <Trash2 className="h-4 w-4" /> حذف جميع البيانات
             </Button>
 
-            <div className="mr-auto text-sm text-muted-foreground flex flex-col items-end gap-0.5">
+            <div className="mr-auto text-sm text-muted-foreground flex flex-col items-end gap-1 min-w-[200px]">
               <span>عدد الطالبات: <span className="font-bold text-foreground">{students.length}</span></span>
               <span className="text-xs">
-                {saving ? '🔄 جارٍ الحفظ التلقائي...' : isDirty ? '✏️ تغييرات غير محفوظة...' : lastSaved ? `✓ تم الحفظ ${lastSaved.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}` : '✓ كل البيانات محفوظة'}
+                {saving && saveProgress
+                  ? `🔄 جارٍ المزامنة ${saveProgress.current}/${saveProgress.total} (${Math.round((saveProgress.current / saveProgress.total) * 100)}%)`
+                  : isDirty ? `✏️ ${Object.keys(dirtyMap).length} تغيير غير محفوظ...` : lastSaved ? `✓ تم الحفظ ${lastSaved.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}` : '✓ كل البيانات محفوظة'}
               </span>
+              {saveProgress && saveProgress.total > 0 && (
+                <Progress value={(saveProgress.current / saveProgress.total) * 100} className="h-1.5 w-full" />
+              )}
             </div>
           </div>
         </div>
