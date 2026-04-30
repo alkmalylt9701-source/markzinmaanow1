@@ -94,11 +94,16 @@ function IndexPage() {
         }
       }
 
+      const total = entries.length;
+      setSaveProgress({ current: 0, total });
+      let done = 0;
       for (const [idStr, d] of entries) {
         const id = parseInt(idStr);
         await saveStudent({ id, name: d.name, teacher: d.teacher });
         await saveHifzHistory(id, d.history);
         await saveYearData(currentYear, id, d.yearData);
+        done++;
+        setSaveProgress({ current: done, total });
       }
       // إزالة المحفوظ فقط (قد تكون أضيفت تغييرات جديدة أثناء الحفظ)
       setDirtyMap((prev) => {
