@@ -28,6 +28,14 @@ function IndexPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [dirtyMap, setDirtyMap] = useState<Record<number, DirtyData>>({});
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const dirtyMapRef = useRef(dirtyMap);
+  const studentsRef = useRef(students);
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const savingRef = useRef(false);
+
+  useEffect(() => { dirtyMapRef.current = dirtyMap; }, [dirtyMap]);
+  useEffect(() => { studentsRef.current = students; }, [students]);
 
   const isDirty = Object.keys(dirtyMap).length > 0;
 
