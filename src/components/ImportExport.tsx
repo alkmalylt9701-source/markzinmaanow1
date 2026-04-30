@@ -63,14 +63,17 @@ export const ImportExport = ({ onDataImported }: Props) => {
         if (json.length === 0) { toast.error("الملف فارغ"); return; }
         let imported = 0, updated = 0;
         const existing = await loadGlobalStudents();
+        const total = json.length;
+        setProgress({ label: 'جارٍ الاستيراد', current: 0, total });
+        let processed = 0;
         for (const row of json) {
           const name = String(row['الاسم'] || '').trim();
-          if (!name) continue;
+          if (!name) { processed++; setProgress({ label: 'جارٍ الاستيراد', current: processed, total }); continue; }
           let studentId: number;
           const found = existing.find((s) => s.name === name);
           if (!found) {
             const id = await saveStudent({ name, teacher: '' });
-            if (!id) continue;
+            if (!id) { processed++; setProgress({ label: 'جارٍ الاستيراد', current: processed, total }); continue; }
             studentId = id; imported++;
           } else { studentId = found.id; updated++; }
           const history = await loadHifzHistory(studentId);
@@ -87,12 +90,16 @@ export const ImportExport = ({ onDataImported }: Props) => {
             if (row[`حفظ_درجة_${y}`] !== undefined) { yd.memorization = String(row[`حفظ_درجة_${y}`]); has = true; }
             if (has) await saveYearData(y.toString(), studentId, yd);
           }
+          processed++;
+          setProgress({ label: 'جارٍ الاستيراد', current: processed, total });
         }
         onDataImported();
         toast.success(`تم استيراد ${imported} طالبة جديدة وتحديث ${updated} طالبة`);
       } catch (err) {
         console.error(err);
         toast.error("خطأ في الاستيراد، تأكد من تنسيق ملف Excel");
+      } finally {
+        setTimeout(() => setProgress(null), 800);
       }
     };
     reader.readAsBinaryString(file);
