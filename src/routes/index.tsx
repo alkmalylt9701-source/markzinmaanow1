@@ -63,31 +63,32 @@ function IndexPage() {
     setDirtyMap((prev) => ({ ...prev, [id]: d }));
   }, []);
 
-  const handleSaveAll = async () => {
-    if (!isDirty) return;
+  const performSave = useCallback(async (silent = false): Promise<boolean> => {
+    const currentDirty = dirtyMapRef.current;
+    const entries = Object.entries(currentDirty);
+    if (entries.length === 0) return true;
+    if (savingRef.current) return false;
+
+    savingRef.current = true;
     setSaving(true);
     try {
-      const entries = Object.entries(dirtyMap);
       // التحقق من التكرار محلياً قبل الحفظ
       const namesSeen = new Map<string, number>();
       for (const [idStr, d] of entries) {
         const n = (d.name || '').trim();
         if (!n) continue;
         if (namesSeen.has(n)) {
-          toast.error(`الاسم "${n}" مكرر في الجدول`);
-          setSaving(false);
-          return;
+          if (!silent) toast.error(`الاسم "${n}" مكرر في الجدول`);
+          return false;
         }
         namesSeen.set(n, parseInt(idStr));
       }
-      // التحقق ضد الطالبات الموجودات (غير المعدّلات)
-      for (const s of students) {
-        if (dirtyMap[s.id]) continue;
+      for (const s of studentsRef.current) {
+        if (currentDirty[s.id]) continue;
         const existingName = (s.name || '').trim();
         if (existingName && namesSeen.has(existingName)) {
-          toast.error(`الاسم "${existingName}" موجود مسبقاً`);
-          setSaving(false);
-          return;
+          if (!silent) toast.error(`الاسم "${existingName}" موجود مسبقاً`);
+          return false;
         }
       }
 
@@ -97,20 +98,61 @@ function IndexPage() {
         await saveHifzHistory(id, d.history);
         await saveYearData(currentYear, id, d.yearData);
       }
-      setDirtyMap({});
-      await loadData();
-      toast.success(`تم حفظ بيانات ${entries.length} طالبة`);
+      // إزالة المحفوظ فقط (قد تكون أضيفت تغييرات جديدة أثناء الحفظ)
+      setDirtyMap((prev) => {
+        const next = { ...prev };
+        for (const [idStr] of entries) {
+          if (next[parseInt(idStr)] === currentDirty[parseInt(idStr)]) {
+            delete next[parseInt(idStr)];
+          }
+        }
+        return next;
+      });
+      setLastSaved(new Date());
+      if (!silent) toast.success(`تم حفظ بيانات ${entries.length} طالبة`);
+      return true;
     } catch (err) {
       if (err instanceof DuplicateNameError) {
-        toast.error(err.message);
+        if (!silent) toast.error(err.message);
       } else {
         console.error(err);
-        toast.error("حدث خطأ أثناء الحفظ");
+        if (!silent) toast.error("حدث خطأ أثناء الحفظ");
       }
+      return false;
     } finally {
+      savingRef.current = false;
       setSaving(false);
     }
-  };
+  }, [currentYear]);
+
+  const handleSaveAll = useCallback(async () => {
+    const ok = await performSave(false);
+    if (ok) await loadData();
+  }, [performSave, loadData]);
+
+  // حفظ تلقائي بعد 1.5 ثانية من آخر تعديل
+  useEffect(() => {
+    if (!isDirty) return;
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    autoSaveTimerRef.current = setTimeout(() => {
+      performSave(true);
+    }, 1500);
+    return () => {
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    };
+  }, [dirtyMap, isDirty, performSave]);
+
+  // حفظ قبل إغلاق الصفحة
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (Object.keys(dirtyMapRef.current).length > 0) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, []);
 
   const handleYearChange = async (year: string) => {
     if (isDirty && !confirm('هناك تغييرات غير محفوظة، هل تريد المتابعة؟')) return;
