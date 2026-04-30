@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CompetitionTable } from "@/components/CompetitionTable";
@@ -28,6 +28,14 @@ function IndexPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [dirtyMap, setDirtyMap] = useState<Record<number, DirtyData>>({});
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const dirtyMapRef = useRef(dirtyMap);
+  const studentsRef = useRef(students);
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const savingRef = useRef(false);
+
+  useEffect(() => { dirtyMapRef.current = dirtyMap; }, [dirtyMap]);
+  useEffect(() => { studentsRef.current = students; }, [students]);
 
   const isDirty = Object.keys(dirtyMap).length > 0;
 
@@ -55,31 +63,32 @@ function IndexPage() {
     setDirtyMap((prev) => ({ ...prev, [id]: d }));
   }, []);
 
-  const handleSaveAll = async () => {
-    if (!isDirty) return;
+  const performSave = useCallback(async (silent = false): Promise<boolean> => {
+    const currentDirty = dirtyMapRef.current;
+    const entries = Object.entries(currentDirty);
+    if (entries.length === 0) return true;
+    if (savingRef.current) return false;
+
+    savingRef.current = true;
     setSaving(true);
     try {
-      const entries = Object.entries(dirtyMap);
       // التحقق من التكرار محلياً قبل الحفظ
       const namesSeen = new Map<string, number>();
       for (const [idStr, d] of entries) {
         const n = (d.name || '').trim();
         if (!n) continue;
         if (namesSeen.has(n)) {
-          toast.error(`الاسم "${n}" مكرر في الجدول`);
-          setSaving(false);
-          return;
+          if (!silent) toast.error(`الاسم "${n}" مكرر في الجدول`);
+          return false;
         }
         namesSeen.set(n, parseInt(idStr));
       }
-      // التحقق ضد الطالبات الموجودات (غير المعدّلات)
-      for (const s of students) {
-        if (dirtyMap[s.id]) continue;
+      for (const s of studentsRef.current) {
+        if (currentDirty[s.id]) continue;
         const existingName = (s.name || '').trim();
         if (existingName && namesSeen.has(existingName)) {
-          toast.error(`الاسم "${existingName}" موجود مسبقاً`);
-          setSaving(false);
-          return;
+          if (!silent) toast.error(`الاسم "${existingName}" موجود مسبقاً`);
+          return false;
         }
       }
 
@@ -89,20 +98,61 @@ function IndexPage() {
         await saveHifzHistory(id, d.history);
         await saveYearData(currentYear, id, d.yearData);
       }
-      setDirtyMap({});
-      await loadData();
-      toast.success(`تم حفظ بيانات ${entries.length} طالبة`);
+      // إزالة المحفوظ فقط (قد تكون أضيفت تغييرات جديدة أثناء الحفظ)
+      setDirtyMap((prev) => {
+        const next = { ...prev };
+        for (const [idStr] of entries) {
+          if (next[parseInt(idStr)] === currentDirty[parseInt(idStr)]) {
+            delete next[parseInt(idStr)];
+          }
+        }
+        return next;
+      });
+      setLastSaved(new Date());
+      if (!silent) toast.success(`تم حفظ بيانات ${entries.length} طالبة`);
+      return true;
     } catch (err) {
       if (err instanceof DuplicateNameError) {
-        toast.error(err.message);
+        if (!silent) toast.error(err.message);
       } else {
         console.error(err);
-        toast.error("حدث خطأ أثناء الحفظ");
+        if (!silent) toast.error("حدث خطأ أثناء الحفظ");
       }
+      return false;
     } finally {
+      savingRef.current = false;
       setSaving(false);
     }
-  };
+  }, [currentYear]);
+
+  const handleSaveAll = useCallback(async () => {
+    const ok = await performSave(false);
+    if (ok) await loadData();
+  }, [performSave, loadData]);
+
+  // حفظ تلقائي بعد 1.5 ثانية من آخر تعديل
+  useEffect(() => {
+    if (!isDirty) return;
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    autoSaveTimerRef.current = setTimeout(() => {
+      performSave(true);
+    }, 1500);
+    return () => {
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    };
+  }, [dirtyMap, isDirty, performSave]);
+
+  // حفظ قبل إغلاق الصفحة
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (Object.keys(dirtyMapRef.current).length > 0) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, []);
 
   const handleYearChange = async (year: string) => {
     if (isDirty && !confirm('هناك تغييرات غير محفوظة، هل تريد المتابعة؟')) return;
@@ -207,9 +257,9 @@ function IndexPage() {
               <Plus className="h-4 w-4" /> إضافة طالبة جديدة
             </Button>
 
-            <Button onClick={handleSaveAll} disabled={!isDirty || saving} className={`gap-2 ${isDirty ? 'animate-pulse bg-success hover:bg-success/90 text-success-foreground' : ''}`}>
+            <Button onClick={handleSaveAll} disabled={!isDirty || saving} variant={isDirty ? "default" : "secondary"} className="gap-2">
               <Save className="h-4 w-4" />
-              {saving ? 'جارٍ الحفظ...' : 'حفظ التغييرات'}
+              {saving ? 'جارٍ الحفظ...' : isDirty ? 'حفظ الآن' : 'محفوظ'}
               {isDirty && <span className="bg-white/20 rounded-full px-2 py-0.5 text-xs">{Object.keys(dirtyMap).length}</span>}
             </Button>
 
@@ -221,8 +271,11 @@ function IndexPage() {
               <Trash2 className="h-4 w-4" /> حذف جميع البيانات
             </Button>
 
-            <div className="mr-auto text-sm text-muted-foreground">
-              عدد الطالبات: <span className="font-bold text-foreground">{students.length}</span>
+            <div className="mr-auto text-sm text-muted-foreground flex flex-col items-end gap-0.5">
+              <span>عدد الطالبات: <span className="font-bold text-foreground">{students.length}</span></span>
+              <span className="text-xs">
+                {saving ? '🔄 جارٍ الحفظ التلقائي...' : isDirty ? '✏️ تغييرات غير محفوظة...' : lastSaved ? `✓ تم الحفظ ${lastSaved.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}` : '✓ كل البيانات محفوظة'}
+              </span>
             </div>
           </div>
         </div>
