@@ -149,6 +149,23 @@ export const loadYearData = async (year: string, studentId: number): Promise<Yea
   };
 };
 
+// جلب جميع بيانات السنوات للطالبة دفعة واحدة (لتسريع التقارير)
+export const loadAllYearDataForStudent = async (studentId: number): Promise<Record<string, YearData>> => {
+  const userId = await getUserId();
+  if (!userId) return {};
+  const { data } = await supabase.from('year_data').select('*').eq('user_id', userId).eq('student_id', studentId);
+  const map: Record<string, YearData> = {};
+  (data || []).forEach((row) => {
+    map[row.year] = {
+      baseHifz: row.base_hifz, totalHifz: row.total_hifz, parts: row.parts,
+      annual: row.annual, recitation: row.recitation, memorization: row.memorization,
+      total: row.total, grade: row.grade, prize: row.prize,
+      statusPrize: row.status_prize, rank: row.rank, teacher: row.teacher || '',
+    };
+  });
+  return map;
+};
+
 export const getActiveYear = async (): Promise<string> => {
   const userId = await getUserId();
   if (!userId) return '1447';

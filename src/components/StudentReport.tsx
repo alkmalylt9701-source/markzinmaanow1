@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FileText, Printer } from "lucide-react";
-import { loadYearData, loadHifzHistory } from "@/utils/storage";
+import { loadAllYearDataForStudent, loadHifzHistory } from "@/utils/storage";
 import { calculateBaseHifz, calculateGrade, calculatePrize } from "@/utils/calculations";
 import logo from "@/assets/logo.png";
 
@@ -29,10 +29,14 @@ export const StudentReport = ({ student }: Props) => {
   };
 
   const handlePrint = async () => {
-    const history = await loadHifzHistory(student.id);
+    // جلب التاريخ وكل بيانات السنوات بالتوازي (طلبان فقط بدلاً من 10)
+    const [history, allYearData] = await Promise.all([
+      loadHifzHistory(student.id),
+      loadAllYearDataForStudent(student.id),
+    ]);
     const data: YearReport[] = [];
     for (const year of selectedYears) {
-      const yd = await loadYearData(year.toString(), student.id);
+      const yd = allYearData[year.toString()] || { parts: '', annual: '', recitation: '', memorization: '', statusPrize: '0' } as YearData;
       const baseHifz = calculateBaseHifz(history, year);
       const parts = parseFloat(yd.parts) || 0;
       const totalHifz = Math.min(baseHifz + parts, 30);
