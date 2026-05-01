@@ -156,3 +156,12 @@ const TableRowComponent = ({ student, index, currentYear, onDelete, onDirtyChang
     </tr>
   );
 };
+
+// memo لمنع إعادة رسم الصفوف غير المتغيرة (تسريع كبير عند 50+ طالبة)
+export const TableRow = memo(TableRowComponent, (prev, next) =>
+  prev.student === next.student &&
+  prev.index === next.index &&
+  prev.currentYear === next.currentYear &&
+  prev.onDelete === next.onDelete &&
+  prev.onDirtyChange === next.onDirtyChange
+);
