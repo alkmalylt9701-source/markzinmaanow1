@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { StudentReport } from "@/components/StudentReport";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, memo } from "react";
 import { calculateBaseHifz, calculateGrade, calculatePrize } from "@/utils/calculations";
 
 interface Props {
@@ -20,7 +20,7 @@ const defaultYearData = (): YearData => ({
   teacher: ''
 });
 
-export const TableRow = ({ student, index, currentYear, onDelete, onDirtyChange }: Props) => {
+const TableRowComponent = ({ student, index, currentYear, onDelete, onDirtyChange }: Props) => {
   const currentYearNum = parseInt(currentYear);
   const [name, setName] = useState(student.name);
   const [history, setHistory] = useState<HifzHistory>(student.hifzHistory || {});
@@ -156,3 +156,12 @@ export const TableRow = ({ student, index, currentYear, onDelete, onDirtyChange 
     </tr>
   );
 };
+
+// memo لمنع إعادة رسم الصفوف غير المتغيرة (تسريع كبير عند 50+ طالبة)
+export const TableRow = memo(TableRowComponent, (prev, next) =>
+  prev.student === next.student &&
+  prev.index === next.index &&
+  prev.currentYear === next.currentYear &&
+  prev.onDelete === next.onDelete &&
+  prev.onDirtyChange === next.onDirtyChange
+);
