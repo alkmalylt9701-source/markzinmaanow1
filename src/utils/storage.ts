@@ -128,6 +128,12 @@ export const saveYearData = async (year: string, studentId: number, d: YearData)
     total: d.total, grade: d.grade, prize: d.prize,
     status_prize: d.statusPrize, rank: d.rank, teacher: d.teacher || '',
   }, { onConflict: 'student_id,year' });
+
+  // مزامنة الأجزاء الجديدة لهذا العام في تاريخ الحفظ ليُحسب تراكمياً للأعوام التالية
+  const partsValue = (parseFloat(d.parts) || 0).toString();
+  await supabase.from('hifz_history').upsert({
+    user_id: userId, student_id: studentId, year_key: `h${year}`, value: partsValue,
+  }, { onConflict: 'student_id,year_key' });
 };
 
 export const loadYearData = async (year: string, studentId: number): Promise<YearData> => {
