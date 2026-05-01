@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Student, START_YEAR, END_YEAR } from "@/types/student";
+import { Student, YearData, START_YEAR, END_YEAR } from "@/types/student";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
