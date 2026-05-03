@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { Student, HifzHistory, YearData } from "@/types/student";
 import { TableHeader, type SortField, type SortDirection } from "./table/TableHeader";
 import { TableRow } from "./table/TableRow";
@@ -16,14 +16,29 @@ interface Props {
   onDirtyChange: (studentId: number, data: DirtyData) => void;
 }
 
+const PREFS_KEY = "competitionTablePrefs";
+const loadPrefs = () => {
+  if (typeof window === "undefined") return null;
+  try { return JSON.parse(localStorage.getItem(PREFS_KEY) || "null"); } catch { return null; }
+};
+
 export const CompetitionTable = ({ students, currentYear, onDelete, onDirtyChange }: Props) => {
-  const [selectedTeacher, setSelectedTeacher] = useState("all");
-  const [nameFilter, setNameFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [gradeFilter, setGradeFilter] = useState("all");
-  const [partsFilter, setPartsFilter] = useState("");
-  const [sortField, setSortField] = useState<SortField | null>(null);
-  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+  const initial = loadPrefs() || {};
+  const [selectedTeacher, setSelectedTeacher] = useState<string>(initial.selectedTeacher ?? "all");
+  const [nameFilter, setNameFilter] = useState<string>(initial.nameFilter ?? "");
+  const [statusFilter, setStatusFilter] = useState<string>(initial.statusFilter ?? "all");
+  const [gradeFilter, setGradeFilter] = useState<string>(initial.gradeFilter ?? "all");
+  const [partsFilter, setPartsFilter] = useState<string>(initial.partsFilter ?? "");
+  const [sortField, setSortField] = useState<SortField | null>(initial.sortField ?? null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(initial.sortDirection ?? null);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(PREFS_KEY, JSON.stringify({
+        selectedTeacher, nameFilter, statusFilter, gradeFilter, partsFilter, sortField, sortDirection,
+      }));
+    } catch { /* ignore */ }
+  }, [selectedTeacher, nameFilter, statusFilter, gradeFilter, partsFilter, sortField, sortDirection]);
 
   const handleSort = useCallback((field: SortField) => {
     if (sortField === field) {
