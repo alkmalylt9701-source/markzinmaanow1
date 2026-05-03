@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      documents: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_path: string
+          file_type: string
+          id: string
+          mime_type: string | null
+          month: number
+          size_bytes: number | null
+          user_id: string
+          year: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_path: string
+          file_type: string
+          id?: string
+          mime_type?: string | null
+          month: number
+          size_bytes?: number | null
+          user_id: string
+          year: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          file_type?: string
+          id?: string
+          mime_type?: string | null
+          month?: number
+          size_bytes?: number | null
+          user_id?: string
+          year?: string
+        }
+        Relationships: []
+      }
       hifz_history: {
         Row: {
           student_id: number
