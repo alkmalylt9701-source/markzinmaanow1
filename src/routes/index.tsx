@@ -1,10 +1,10 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CompetitionTable } from "@/components/CompetitionTable";
 import { ImportExport } from "@/components/ImportExport";
-import { Plus, Printer, Trash2, Calendar, LogOut, Save } from "lucide-react";
+import { Plus, Printer, Trash2, Calendar, LogOut, Save, FolderOpen } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import logo from "@/assets/logo.png";
 import { Student, HifzHistory, YearData, START_YEAR, END_YEAR } from "@/types/student";
@@ -244,6 +244,12 @@ function IndexPage() {
       </header>
 
       <div className="container mx-auto px-4 py-6 print:hidden space-y-4">
+        <div className="flex justify-center">
+          <Button asChild size="lg" className="gap-2 shadow-md">
+            <Link to="/documents"><FolderOpen className="h-5 w-5" /> صفحة الوثائق (صور / فيديو / إكسل)</Link>
+          </Button>
+        </div>
+
         <ImportExport onDataImported={loadData} />
 
         <div className="bg-card rounded-lg border border-border p-4 shadow-sm">
