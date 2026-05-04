@@ -207,6 +207,20 @@ function DocumentsPage() {
             <Upload className="h-4 w-4" /> {uploading ? "جارٍ الرفع..." : "رفع وثائق"}
           </Button>
 
+          <div className="flex items-center gap-2">
+            <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+            <span className="font-semibold text-sm">الترتيب:</span>
+            <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
+              <SelectTrigger className="w-44 bg-background"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="date_desc">الأحدث أولاً</SelectItem>
+                <SelectItem value="date_asc">الأقدم أولاً</SelectItem>
+                <SelectItem value="size_desc">الأكبر حجماً</SelectItem>
+                <SelectItem value="size_asc">الأصغر حجماً</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="mr-auto text-sm text-muted-foreground">
             إجمالي الوثائق: <span className="font-bold text-foreground">{docs.length}</span>
           </div>
