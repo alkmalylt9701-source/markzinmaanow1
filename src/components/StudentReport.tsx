@@ -54,11 +54,12 @@ export const StudentReport = ({ student }: Props) => {
     const totalPrize = data.reduce((s, r) => s + r.prize, 0);
     const totalStatusPrize = data.reduce((s, r) => s + r.statusPrize, 0);
 
+    const esc = (s: unknown) => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
     const rows = data.map((r) => `<tr>
       <td>${r.year}هـ</td><td>${r.baseHifz || '-'}</td><td>${r.parts || '-'}</td>
       <td>${r.totalHifz >= 30 ? 'خاتم ✨' : r.totalHifz || '-'}</td>
       <td>${r.annual || '-'}</td><td>${r.recitation || '-'}</td><td>${r.memorization || '-'}</td>
-      <td>${r.totalScore || '-'}</td><td>${r.grade || '-'}</td>
+      <td>${r.totalScore || '-'}</td><td>${esc(r.grade || '-')}</td>
       <td class="${r.isActive ? 'active' : 'inactive'}">${r.isActive ? 'نشط' : 'منقطع'}</td>
       <td>${r.prize.toLocaleString()}</td><td>${r.statusPrize.toLocaleString()}</td>
     </tr>`).join('');
