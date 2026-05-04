@@ -88,7 +88,7 @@ const TableRowComponent = ({ student, index, currentYear, onDelete, onDirtyChang
     <tr className="hover:bg-accent/10 transition-colors">
       <td className="border border-border p-1 text-center font-semibold">{index}</td>
 
-      <td className="border border-border p-1 min-w-[260px] w-[260px]">
+      <td className="border border-border p-1 min-w-[200px] w-[200px]">
         <Input value={name} onChange={(e) => updateName(e.target.value)} placeholder="الاسم الأول الأب الجد" title={name} className="text-right border-0 focus-visible:ring-1 w-full px-2" />
       </td>
 
