@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Upload, ArrowRight, Trash2, FileText, Image as ImageIcon, Video, FileSpreadsheet, Download, Eye } from "lucide-react";
+import { Calendar, Upload, ArrowRight, Trash2, FileText, Image as ImageIcon, Video, FileSpreadsheet, Download, Eye, ArrowUpDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -61,7 +61,12 @@ function DocumentsPage() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
+  const [sortBy, setSortBy] = useState<"date_desc" | "date_asc" | "size_desc" | "size_asc">(
+    () => (typeof window !== "undefined" && (localStorage.getItem("documentsSortBy") as any)) || "date_desc"
+  );
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => { if (typeof window !== "undefined") localStorage.setItem("documentsSortBy", sortBy); }, [sortBy]);
 
   useEffect(() => { if (!authLoading && !user) navigate({ to: "/auth" }); }, [user, authLoading, navigate]);
   useEffect(() => { if (user) getActiveYear().then(setYear); }, [user]);
@@ -128,10 +133,21 @@ function DocumentsPage() {
     window.open(data.signedUrl, "_blank");
   };
 
-  // Group by month
+  // Group by month with sorting
+  const sortItems = (arr: DocRow[]) => {
+    const sorted = [...arr];
+    sorted.sort((a, b) => {
+      if (sortBy === "date_desc") return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      if (sortBy === "date_asc") return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      if (sortBy === "size_desc") return (b.size_bytes || 0) - (a.size_bytes || 0);
+      if (sortBy === "size_asc") return (a.size_bytes || 0) - (b.size_bytes || 0);
+      return 0;
+    });
+    return sorted;
+  };
   const byMonth = HIJRI_MONTHS.map((name, i) => ({
     month: i + 1, name,
-    items: docs.filter((d) => d.month === i + 1),
+    items: sortItems(docs.filter((d) => d.month === i + 1)),
   })).filter((g) => g.items.length > 0);
 
   if (authLoading || !user) {
@@ -190,6 +206,20 @@ function DocumentsPage() {
           <Button onClick={() => fileRef.current?.click()} disabled={uploading} className="gap-2">
             <Upload className="h-4 w-4" /> {uploading ? "جارٍ الرفع..." : "رفع وثائق"}
           </Button>
+
+          <div className="flex items-center gap-2">
+            <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+            <span className="font-semibold text-sm">الترتيب:</span>
+            <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
+              <SelectTrigger className="w-44 bg-background"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="date_desc">الأحدث أولاً</SelectItem>
+                <SelectItem value="date_asc">الأقدم أولاً</SelectItem>
+                <SelectItem value="size_desc">الأكبر حجماً</SelectItem>
+                <SelectItem value="size_asc">الأصغر حجماً</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
           <div className="mr-auto text-sm text-muted-foreground">
             إجمالي الوثائق: <span className="font-bold text-foreground">{docs.length}</span>
