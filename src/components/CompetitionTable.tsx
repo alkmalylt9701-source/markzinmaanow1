@@ -110,6 +110,7 @@ export const CompetitionTable = ({ students, currentYear, onDelete, onDirtyChang
   const handlePrintFiltered = () => {
     const w = window.open('', '_blank');
     if (!w) return;
+    const esc = (s: unknown) => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
     const rows = filteredStudents.map((s, i) => {
       const parts = parseFloat(s.yearData?.parts || '0');
       const totalScore = parseFloat(s.yearData?.total || '0');
@@ -117,12 +118,12 @@ export const CompetitionTable = ({ students, currentYear, onDelete, onDirtyChang
       const { grade } = calculateGrade(totalScore);
       const prize = parseFloat(s.yearData?.prize || '0');
       const sp = parseFloat(s.yearData?.statusPrize || '0');
-      return `<tr><td>${i + 1}</td><td>${s.name}</td><td>${s.teacher}</td>
-        <td>${s.yearData?.baseHifz || '-'}</td><td>${s.yearData?.parts || '-'}</td>
-        <td>${s.yearData?.totalHifz || '-'}</td><td>${s.yearData?.annual || '-'}</td>
-        <td>${s.yearData?.recitation || '-'}</td><td>${s.yearData?.memorization || '-'}</td>
+      return `<tr><td>${i + 1}</td><td>${esc(s.name)}</td><td>${esc(s.teacher)}</td>
+        <td>${esc(s.yearData?.baseHifz || '-')}</td><td>${esc(s.yearData?.parts || '-')}</td>
+        <td>${esc(s.yearData?.totalHifz || '-')}</td><td>${esc(s.yearData?.annual || '-')}</td>
+        <td>${esc(s.yearData?.recitation || '-')}</td><td>${esc(s.yearData?.memorization || '-')}</td>
         <td>${totalScore || '-'}</td><td class="${isActive ? 'active' : 'inactive'}">${isActive ? 'نشط' : 'منقطع'}</td>
-        <td>${grade || '-'}</td><td>${prize.toLocaleString()}</td><td>${sp.toLocaleString()}</td></tr>`;
+        <td>${esc(grade || '-')}</td><td>${prize.toLocaleString()}</td><td>${sp.toLocaleString()}</td></tr>`;
     }).join('');
     const totalPrize = filteredStudents.reduce((s, x) => s + (parseFloat(x.yearData?.prize || '0')), 0);
     const totalSP = filteredStudents.reduce((s, x) => s + (parseFloat(x.yearData?.statusPrize || '0')), 0);
