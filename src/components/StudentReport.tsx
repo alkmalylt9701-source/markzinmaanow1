@@ -67,7 +67,7 @@ export const StudentReport = ({ student }: Props) => {
     const w = window.open('', '_blank');
     if (!w) return;
     w.document.write(`
-      <html dir="rtl"><head><title>تقرير ${student.name}</title>
+      <html dir="rtl"><head><title>تقرير ${esc(student.name)}</title>
       <style>
         *{margin:0;padding:0;box-sizing:border-box}
         body{font-family:Tajawal,'Segoe UI',Tahoma,Arial,sans-serif;padding:20px;color:#1a3a2a}
