@@ -90,11 +90,11 @@ export const StudentReport = ({ student }: Props) => {
         <div class="header">
           <img src="${logo}" alt="الشعار" />
           <h1>مركز إنماء الأهلي الخيري</h1>
-          <h2>تقرير المسابقة الرمضانية - ${student.name}</h2>
+          <h2>تقرير المسابقة الرمضانية - ${esc(student.name)}</h2>
         </div>
         <div class="student-info">
-          <div><strong>الطالبة:</strong> ${student.name}</div>
-          <div><strong>المعلمة:</strong> ${student.teacher}</div>
+          <div><strong>الطالبة:</strong> ${esc(student.name)}</div>
+          <div><strong>المعلمة:</strong> ${esc(student.teacher)}</div>
         </div>
         <table>
           <thead><tr>
