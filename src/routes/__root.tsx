@@ -58,6 +58,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
       <body>
         {children}
         <PWARegister />
+        <SyncStatus />
         <Toaster richColors position="top-center" />
         <Scripts />
       </body>
