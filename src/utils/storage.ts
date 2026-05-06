@@ -101,7 +101,7 @@ export const deleteAllStudents = async () => {
   const userId = await getUserId();
   if (!userId) return;
   await tryOrQueue(
-    () => supabase.from('students').delete().eq('user_id', userId),
+    async () => await supabase.from('students').delete().eq('user_id', userId),
     { kind: 'delete', table: 'students', match: { user_id: userId } }
   );
 };
