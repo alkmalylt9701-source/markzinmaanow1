@@ -1,5 +1,6 @@
 import { Student, HifzHistory, YearData } from "@/types/student";
 import { supabase } from "@/integrations/supabase/client";
+import { tryOrQueue } from "@/utils/syncQueue";
 
 const defaultYearData = (): YearData => ({
   baseHifz: '0', totalHifz: '0', parts: '', annual: '', recitation: '',
