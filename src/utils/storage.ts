@@ -113,7 +113,10 @@ export const saveHifzHistory = async (studentId: number, history: HifzHistory) =
     user_id: userId, student_id: studentId, year_key, value: value || '0',
   }));
   if (rows.length === 0) return;
-  await supabase.from('hifz_history').upsert(rows, { onConflict: 'student_id,year_key' });
+  await tryOrQueue(
+    async () => await supabase.from('hifz_history').upsert(rows, { onConflict: 'student_id,year_key' }),
+    { kind: 'upsert', table: 'hifz_history', values: rows, onConflict: 'student_id,year_key' }
+  );
 };
 
 export const loadHifzHistory = async (studentId: number): Promise<HifzHistory> => {
