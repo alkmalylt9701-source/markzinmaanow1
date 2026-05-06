@@ -1,5 +1,6 @@
 import { Outlet, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { Toaster } from "@/components/ui/sonner";
+import { PWARegister } from "@/components/PWARegister";
 import appCss from "../styles.css?url";
 
 export const Route = createRootRoute({
@@ -55,6 +56,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
+        <PWARegister />
         <Toaster richColors position="top-center" />
         <Scripts />
       </body>
