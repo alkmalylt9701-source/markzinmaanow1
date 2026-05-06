@@ -131,19 +131,25 @@ export const loadHifzHistory = async (studentId: number): Promise<HifzHistory> =
 export const saveYearData = async (year: string, studentId: number, d: YearData) => {
   const userId = await getUserId();
   if (!userId) return;
-  await supabase.from('year_data').upsert({
+  const yearRow = {
     user_id: userId, student_id: studentId, year,
     base_hifz: d.baseHifz, total_hifz: d.totalHifz, parts: d.parts,
     annual: d.annual, recitation: d.recitation, memorization: d.memorization,
     total: d.total, grade: d.grade, prize: d.prize,
     status_prize: d.statusPrize, rank: d.rank, teacher: d.teacher || '',
-  }, { onConflict: 'student_id,year' });
+  };
+  await tryOrQueue(
+    async () => await supabase.from('year_data').upsert(yearRow, { onConflict: 'student_id,year' }),
+    { kind: 'upsert', table: 'year_data', values: yearRow, onConflict: 'student_id,year' }
+  );
 
   // مزامنة الأجزاء الجديدة لهذا العام في تاريخ الحفظ ليُحسب تراكمياً للأعوام التالية
   const partsValue = (parseFloat(d.parts) || 0).toString();
-  await supabase.from('hifz_history').upsert({
-    user_id: userId, student_id: studentId, year_key: `h${year}`, value: partsValue,
-  }, { onConflict: 'student_id,year_key' });
+  const histRow = { user_id: userId, student_id: studentId, year_key: `h${year}`, value: partsValue };
+  await tryOrQueue(
+    async () => await supabase.from('hifz_history').upsert(histRow, { onConflict: 'student_id,year_key' }),
+    { kind: 'upsert', table: 'hifz_history', values: histRow, onConflict: 'student_id,year_key' }
+  );
 };
 
 export const loadYearData = async (year: string, studentId: number): Promise<YearData> => {
