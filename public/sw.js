@@ -1,8 +1,11 @@
-// Advanced PWA Service Worker - Offline first
-const VERSION = 'v2';
+// Advanced PWA Service Worker - Offline first with API caching
+const VERSION = 'v3';
 const STATIC_CACHE = `static-${VERSION}`;
 const RUNTIME_CACHE = `runtime-${VERSION}`;
 const IMAGE_CACHE = `images-${VERSION}`;
+const API_CACHE = `api-${VERSION}`;
+
+const SUPABASE_HOST = 'qcijgvrosbypsyljpcds.supabase.co';
 
 const PRECACHE_URLS = [
   '/',
@@ -28,7 +31,7 @@ self.addEventListener('activate', (event) => {
       const keys = await caches.keys();
       await Promise.all(
         keys
-          .filter((k) => ![STATIC_CACHE, RUNTIME_CACHE, IMAGE_CACHE].includes(k))
+          .filter((k) => ![STATIC_CACHE, RUNTIME_CACHE, IMAGE_CACHE, API_CACHE].includes(k))
           .map((k) => caches.delete(k))
       );
       await self.clients.claim();
@@ -36,7 +39,6 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Helper: network-first with cache fallback
 async function networkFirst(request, cacheName) {
   const cache = await caches.open(cacheName);
   try {
@@ -49,14 +51,13 @@ async function networkFirst(request, cacheName) {
     const cached = await cache.match(request);
     if (cached) return cached;
     if (request.mode === 'navigate') {
-      const fallback = await cache.match('/') || await caches.match('/');
+      const fallback = (await cache.match('/')) || (await caches.match('/'));
       if (fallback) return fallback;
     }
     throw err;
   }
 }
 
-// Helper: cache-first for static assets
 async function cacheFirst(request, cacheName) {
   const cache = await caches.open(cacheName);
   const cached = await cache.match(request);
@@ -73,43 +74,71 @@ async function cacheFirst(request, cacheName) {
   }
 }
 
+// For Supabase REST GETs: stale-while-revalidate
+async function staleWhileRevalidate(request, cacheName) {
+  const cache = await caches.open(cacheName);
+  // Build cache key without auth headers (just URL is fine for GET)
+  const cacheKey = new Request(request.url, { method: 'GET' });
+  const cached = await cache.match(cacheKey);
+
+  const networkPromise = fetch(request)
+    .then((response) => {
+      if (response && response.status === 200) {
+        cache.put(cacheKey, response.clone()).catch(() => {});
+      }
+      return response;
+    })
+    .catch(() => null);
+
+  if (cached) {
+    networkPromise; // fire-and-forget revalidation
+    return cached;
+  }
+  const fresh = await networkPromise;
+  if (fresh) return fresh;
+  throw new Error('offline and no cache');
+}
+
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Only handle GET
   if (request.method !== 'GET') return;
-
-  // Skip non-http
   if (!url.protocol.startsWith('http')) return;
 
-  // Skip Supabase API and other cross-origin POST-like calls
-  if (url.origin !== self.location.origin && !url.hostname.includes('fonts.g')) {
+  // Supabase REST/storage GETs -> stale-while-revalidate
+  if (url.hostname === SUPABASE_HOST) {
+    if (url.pathname.startsWith('/rest/') || url.pathname.startsWith('/storage/')) {
+      event.respondWith(staleWhileRevalidate(request, API_CACHE));
+    }
+    // auth/realtime: let them go to network normally
     return;
   }
 
-  // HTML navigations -> network-first
+  // Cross-origin (fonts, etc.) - cache fonts
+  if (url.origin !== self.location.origin) {
+    if (url.hostname.includes('fonts.g')) {
+      event.respondWith(cacheFirst(request, STATIC_CACHE));
+    }
+    return;
+  }
+
   if (request.mode === 'navigate') {
     event.respondWith(networkFirst(request, RUNTIME_CACHE));
     return;
   }
 
-  // Images -> cache-first
   if (request.destination === 'image') {
     event.respondWith(cacheFirst(request, IMAGE_CACHE));
     return;
   }
 
-  // Fonts, styles, scripts -> cache-first
   if (['style', 'script', 'font'].includes(request.destination)) {
     event.respondWith(cacheFirst(request, STATIC_CACHE));
     return;
   }
 
-  // Default: try network, fall back to cache
-  event.respondWith(
-    fetch(request).catch(() => caches.match(request))
-  );
+  event.respondWith(fetch(request).catch(() => caches.match(request)));
 });
 
 self.addEventListener('message', (event) => {
