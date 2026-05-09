@@ -244,9 +244,12 @@ function IndexPage() {
       </header>
 
       <div className="container mx-auto px-4 py-6 print:hidden space-y-4">
-        <div className="flex justify-center">
+        <div className="flex justify-center gap-2 flex-wrap">
           <Button asChild size="lg" className="gap-2 shadow-md">
             <Link to="/documents"><FolderOpen className="h-5 w-5" /> صفحة الوثائق (صور / فيديو / إكسل)</Link>
+          </Button>
+          <Button asChild size="lg" variant="secondary" className="gap-2 shadow-md">
+            <Link to="/teachers">👩‍🏫 صفحة المعلمات</Link>
           </Button>
         </div>
 
