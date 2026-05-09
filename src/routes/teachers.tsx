@@ -183,7 +183,13 @@ function TeachersPage() {
                 <div key={t.id} className="bg-card border border-border rounded-lg overflow-hidden shadow-sm">
                   <div className="bg-primary/10 border-b border-border px-4 py-3 flex items-center justify-between flex-wrap gap-2">
                     <div>
-                      <div className="font-bold text-primary text-lg">{t.name}</div>
+                      <Link
+                        to="/teachers/$teacherId"
+                        params={{ teacherId: t.id }}
+                        className="font-bold text-primary text-lg hover:underline cursor-pointer"
+                      >
+                        {t.name}
+                      </Link>
                       <div className="text-xs text-muted-foreground space-x-2 space-x-reverse">
                         {t.phone && <span>📞 {t.phone}</span>}
                         <span>الطالبات: {myStudents.length}</span>
