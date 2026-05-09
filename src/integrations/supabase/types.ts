@@ -106,6 +106,91 @@ export type Database = {
         }
         Relationships: []
       }
+      teacher_annual_bonuses: {
+        Row: {
+          cash_amount: number
+          created_at: string
+          id: string
+          in_kind_description: string | null
+          in_kind_value: number
+          notes: string | null
+          teacher_id: string
+          user_id: string
+          year: string
+        }
+        Insert: {
+          cash_amount?: number
+          created_at?: string
+          id?: string
+          in_kind_description?: string | null
+          in_kind_value?: number
+          notes?: string | null
+          teacher_id: string
+          user_id: string
+          year: string
+        }
+        Update: {
+          cash_amount?: number
+          created_at?: string
+          id?: string
+          in_kind_description?: string | null
+          in_kind_value?: number
+          notes?: string | null
+          teacher_id?: string
+          user_id?: string
+          year?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_annual_bonuses_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teacher_monthly_bonuses: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          month: number
+          notes: string | null
+          teacher_id: string
+          user_id: string
+          year: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          id?: string
+          month: number
+          notes?: string | null
+          teacher_id: string
+          user_id: string
+          year: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          month?: number
+          notes?: string | null
+          teacher_id?: string
+          user_id?: string
+          year?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_monthly_bonuses_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       teachers: {
         Row: {
           created_at: string
