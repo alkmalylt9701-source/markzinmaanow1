@@ -318,7 +318,7 @@ function IndexPage() {
         {loading ? (
           <div className="text-center py-12 text-muted-foreground">جارٍ تحميل البيانات...</div>
         ) : (
-          <CompetitionTable students={students} currentYear={currentYear} onDelete={handleDelete} dirtyMap={dirtyMap} onDirtyChange={handleDirtyChange} />
+          <CompetitionTable students={students} currentYear={currentYear} onDelete={handleDelete} dirtyMap={dirtyMap} onDirtyChange={handleDirtyChange} teacherNames={teacherNames} />
         )}
       </div>
 
