@@ -322,6 +322,47 @@ function TeacherBonusPage() {
             </div>
           </div>
         </div>
+
+        {/* تقارير الطالبات */}
+        <div id="reports" className="bg-card border border-border rounded-lg overflow-hidden shadow-sm scroll-mt-4">
+          <div className="bg-primary/10 border-b border-border px-4 py-3 flex items-center justify-between flex-wrap gap-2">
+            <div className="font-bold text-primary">📋 تقرير طالبات المعلمة ({reportStudents.length})</div>
+            <div className="text-sm">
+              <span className="text-muted-foreground">إجمالي مكافآت الطالبات: </span>
+              <span className="font-bold text-primary">{totalReportPrize.toLocaleString()} ر.س</span>
+            </div>
+          </div>
+          {reportStudents.length === 0 ? (
+            <div className="p-6 text-center text-muted-foreground text-sm">لا توجد طالبات مرتبطات بهذه المعلمة لسنة {year}هـ.</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/50">
+                  <tr>
+                    <th className="px-3 py-2 text-center font-semibold w-12">#</th>
+                    <th className="px-3 py-2 text-right font-semibold">الطالبة</th>
+                    <th className="px-3 py-2 text-center font-semibold">الأجزاء</th>
+                    <th className="px-3 py-2 text-center font-semibold">المجموع</th>
+                    <th className="px-3 py-2 text-center font-semibold">التقدير</th>
+                    <th className="px-3 py-2 text-center font-semibold">المكافأة (ر.س)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {reportStudents.map((s, i) => (
+                    <tr key={s.id} className="border-t border-border hover:bg-muted/20">
+                      <td className="px-3 py-2 text-center">{i + 1}</td>
+                      <td className="px-3 py-2 font-semibold">{s.name}</td>
+                      <td className="px-3 py-2 text-center">{s.parts || "—"}</td>
+                      <td className="px-3 py-2 text-center font-bold">{s.total || "—"}</td>
+                      <td className="px-3 py-2 text-center">{s.grade}</td>
+                      <td className="px-3 py-2 text-center font-bold text-islamic-green">{s.prize.toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
