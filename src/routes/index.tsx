@@ -14,6 +14,7 @@ import {
 } from "@/utils/storage";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
   component: IndexPage,
