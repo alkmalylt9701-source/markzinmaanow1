@@ -23,7 +23,7 @@ const loadPrefs = () => {
   try { return JSON.parse(localStorage.getItem(PREFS_KEY) || "null"); } catch { return null; }
 };
 
-export const CompetitionTable = ({ students, currentYear, onDelete, onDirtyChange }: Props) => {
+export const CompetitionTable = ({ students, currentYear, onDelete, onDirtyChange, teacherNames = [] }: Props) => {
   const initial = loadPrefs() || {};
   const [selectedTeacher, setSelectedTeacher] = useState<string>(initial.selectedTeacher ?? "all");
   const [nameFilter, setNameFilter] = useState<string>(initial.nameFilter ?? "");
