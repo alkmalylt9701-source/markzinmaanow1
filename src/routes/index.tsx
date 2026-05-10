@@ -14,6 +14,7 @@ import {
 } from "@/utils/storage";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
   component: IndexPage,
@@ -26,6 +27,7 @@ function IndexPage() {
   const navigate = useNavigate();
   const [students, setStudents] = useState<Student[]>([]);
   const [currentYear, setCurrentYear] = useState("1447");
+  const [teacherNames, setTeacherNames] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [dirtyMap, setDirtyMap] = useState<Record<number, DirtyData>>({});
@@ -58,6 +60,15 @@ function IndexPage() {
     if (!user) return;
     getActiveYear().then(setCurrentYear);
   }, [user]);
+
+  // تحميل قائمة المعلمات لاستخدامها في القائمة المنسدلة بصف الطالبة
+  const loadTeachers = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase.from("teachers").select("name").eq("user_id", user.id).order("name");
+    setTeacherNames((data || []).map((t: { name: string }) => t.name));
+  }, [user]);
+
+  useEffect(() => { loadTeachers(); }, [loadTeachers]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
@@ -307,7 +318,7 @@ function IndexPage() {
         {loading ? (
           <div className="text-center py-12 text-muted-foreground">جارٍ تحميل البيانات...</div>
         ) : (
-          <CompetitionTable students={students} currentYear={currentYear} onDelete={handleDelete} dirtyMap={dirtyMap} onDirtyChange={handleDirtyChange} />
+          <CompetitionTable students={students} currentYear={currentYear} onDelete={handleDelete} dirtyMap={dirtyMap} onDirtyChange={handleDirtyChange} teacherNames={teacherNames} />
         )}
       </div>
 

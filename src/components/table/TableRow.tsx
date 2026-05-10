@@ -1,6 +1,7 @@
 import { Student, HifzHistory, YearData } from "@/types/student";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Trash2 } from "lucide-react";
 import { StudentReport } from "@/components/StudentReport";
 import { useState, useEffect, useCallback, memo } from "react";
@@ -12,6 +13,7 @@ interface Props {
   currentYear: string;
   onDelete: (id: number) => void;
   onDirtyChange: (studentId: number, data: { name: string; teacher: string; history: HifzHistory; yearData: YearData }) => void;
+  teacherNames?: string[];
 }
 
 const defaultYearData = (): YearData => ({
@@ -20,7 +22,7 @@ const defaultYearData = (): YearData => ({
   teacher: ''
 });
 
-const TableRowComponent = ({ student, index, currentYear, onDelete, onDirtyChange }: Props) => {
+const TableRowComponent = ({ student, index, currentYear, onDelete, onDirtyChange, teacherNames = [] }: Props) => {
   const currentYearNum = parseInt(currentYear);
   const [name, setName] = useState(student.name);
   const [history, setHistory] = useState<HifzHistory>(student.hifzHistory || {});
@@ -92,8 +94,24 @@ const TableRowComponent = ({ student, index, currentYear, onDelete, onDirtyChang
         <Input value={name} onChange={(e) => updateName(e.target.value)} placeholder="الاسم الأول الأب الجد" title={name} className="text-right border-0 focus-visible:ring-1 w-full px-2" />
       </td>
 
-      <td className="border border-border p-1">
-        <Input value={yearData.teacher} onChange={(e) => updateTeacher(e.target.value)} placeholder="المعلمة" className="text-center border-0 focus-visible:ring-1" />
+      <td className="border border-border p-1 min-w-[160px]">
+        <Select
+          value={yearData.teacher || "__none__"}
+          onValueChange={(v) => updateTeacher(v === "__none__" ? "" : v)}
+        >
+          <SelectTrigger className="h-8 border-0 focus:ring-1 text-center bg-transparent">
+            <SelectValue placeholder="—" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__none__">— بدون —</SelectItem>
+            {teacherNames.map((n) => (
+              <SelectItem key={n} value={n}>{n}</SelectItem>
+            ))}
+            {yearData.teacher && !teacherNames.includes(yearData.teacher) && (
+              <SelectItem value={yearData.teacher}>{yearData.teacher} (غير مسجلة)</SelectItem>
+            )}
+          </SelectContent>
+        </Select>
       </td>
 
       <td className="border border-border p-1 bg-accent/15 text-center font-semibold">
@@ -163,5 +181,6 @@ export const TableRow = memo(TableRowComponent, (prev, next) =>
   prev.index === next.index &&
   prev.currentYear === next.currentYear &&
   prev.onDelete === next.onDelete &&
-  prev.onDirtyChange === next.onDirtyChange
+  prev.onDirtyChange === next.onDirtyChange &&
+  prev.teacherNames === next.teacherNames
 );

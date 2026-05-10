@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowRight, Plus, Pencil, Trash2, Users, UserPlus } from "lucide-react";
+import { ArrowRight, Plus, Pencil, Trash2, Users, UserPlus, Gift, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -88,7 +88,6 @@ function TeachersPage() {
         else toast.error("فشل الحفظ");
         return;
       }
-      // مزامنة اسم المعلمة في الطالبات
       if (oldName !== name) {
         await supabase.from("students").update({ teacher: name }).eq("user_id", user.id).eq("teacher", oldName);
       }
@@ -127,18 +126,11 @@ function TeachersPage() {
     await load();
   };
 
-  const handleUnassign = async (studentId: number) => {
-    if (!user) return;
-    const { error } = await supabase.from("students").update({ teacher: "" }).eq("id", studentId).eq("user_id", user.id);
-    if (error) { toast.error("فشل الإلغاء"); return; }
-    await load();
-  };
-
   if (authLoading || !user) {
     return <div className="min-h-screen flex items-center justify-center text-muted-foreground" dir="rtl">جارٍ التحميل...</div>;
   }
 
-  const studentsByTeacher = (name: string) => students.filter((s) => s.teacher === name);
+  const countStudents = (name: string) => students.filter((s) => s.teacher === name).length;
   const unassignedStudents = students.filter((s) => !s.teacher || !teachers.some((t) => t.name === s.teacher));
 
   return (
@@ -149,7 +141,7 @@ function TeachersPage() {
             <img src={logo} alt="الشعار" className="h-14 w-auto" />
             <div>
               <h1 className="text-xl font-bold">المعلمات</h1>
-              <div className="text-sm text-primary-foreground/85">إدارة المعلمات وربط الطالبات</div>
+              <div className="text-sm text-primary-foreground/85">إدارة المعلمات والإكراميات والتقارير</div>
             </div>
           </div>
           <Button asChild variant="secondary" className="gap-2">
@@ -176,70 +168,68 @@ function TeachersPage() {
             لا توجد معلمات بعد — ابدأ بإضافة معلمة من الأعلى.
           </div>
         ) : (
-          <div className="space-y-4">
-            {teachers.map((t) => {
-              const myStudents = studentsByTeacher(t.name);
-              return (
-                <div key={t.id} className="bg-card border border-border rounded-lg overflow-hidden shadow-sm">
-                  <div className="bg-primary/10 border-b border-border px-4 py-3 flex items-center justify-between flex-wrap gap-2">
-                    <div>
+          <div className="overflow-x-auto rounded-lg border border-border shadow-sm bg-card">
+            <table className="w-full text-sm border-collapse">
+              <thead className="bg-primary/10 text-primary">
+                <tr>
+                  <th className="px-3 py-2 text-center font-bold border border-border w-12">#</th>
+                  <th className="px-3 py-2 text-right font-bold border border-border min-w-[180px]">اسم المعلمة</th>
+                  <th className="px-3 py-2 text-right font-bold border border-border">الهاتف</th>
+                  <th className="px-3 py-2 text-center font-bold border border-border">عدد الطالبات</th>
+                  <th className="px-3 py-2 text-right font-bold border border-border">ملاحظات</th>
+                  <th className="px-3 py-2 text-center font-bold border border-border">الإجراءات</th>
+                </tr>
+              </thead>
+              <tbody>
+                {teachers.map((t, i) => (
+                  <tr key={t.id} className="hover:bg-muted/30">
+                    <td className="border border-border text-center px-2 py-2 font-semibold">{i + 1}</td>
+                    <td className="border border-border px-3 py-2 font-bold">
                       <Link
                         to="/teachers/$teacherId"
                         params={{ teacherId: t.id }}
-                        className="font-bold text-primary text-lg hover:underline cursor-pointer"
+                        className="text-primary hover:underline"
                       >
                         {t.name}
                       </Link>
-                      <div className="text-xs text-muted-foreground space-x-2 space-x-reverse">
-                        {t.phone && <span>📞 {t.phone}</span>}
-                        <span>الطالبات: {myStudents.length}</span>
+                    </td>
+                    <td className="border border-border px-3 py-2">{t.phone || <span className="text-muted-foreground">—</span>}</td>
+                    <td className="border border-border px-3 py-2 text-center font-bold">{countStudents(t.name)}</td>
+                    <td className="border border-border px-3 py-2 text-xs text-muted-foreground max-w-[200px] truncate" title={t.notes || ""}>
+                      {t.notes || <span>—</span>}
+                    </td>
+                    <td className="border border-border px-2 py-2">
+                      <div className="flex flex-wrap gap-1 justify-center">
+                        <Button asChild variant="outline" size="sm" className="gap-1 h-8" title="إكرامية شهرية">
+                          <Link to="/teachers/$teacherId" params={{ teacherId: t.id }} hash="monthly">
+                            <Gift className="h-3.5 w-3.5" /> شهرية
+                          </Link>
+                        </Button>
+                        <Button asChild variant="outline" size="sm" className="gap-1 h-8" title="إكرامية سنوية">
+                          <Link to="/teachers/$teacherId" params={{ teacherId: t.id }} hash="annual">
+                            🎁 سنوية
+                          </Link>
+                        </Button>
+                        <Button asChild variant="outline" size="sm" className="gap-1 h-8" title="تقارير">
+                          <Link to="/teachers/$teacherId" params={{ teacherId: t.id }} hash="reports">
+                            <FileText className="h-3.5 w-3.5" /> تقارير
+                          </Link>
+                        </Button>
+                        <Button onClick={() => { setAssigningTo(t); setSelectedStudentId(""); }} variant="ghost" size="sm" className="gap-1 h-8" title="ربط طالبة">
+                          <UserPlus className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button onClick={() => openEdit(t)} variant="ghost" size="sm" className="gap-1 h-8" title="تعديل">
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button onClick={() => handleDelete(t)} variant="ghost" size="sm" className="gap-1 h-8 text-destructive hover:text-destructive" title="حذف">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
                       </div>
-                      {t.notes && <div className="text-xs text-muted-foreground mt-1">{t.notes}</div>}
-                    </div>
-                    <div className="flex gap-1">
-                      <Button onClick={() => { setAssigningTo(t); setSelectedStudentId(""); }} variant="ghost" size="sm" className="gap-1">
-                        <UserPlus className="h-4 w-4" /> ربط طالبة
-                      </Button>
-                      <Button onClick={() => openEdit(t)} variant="ghost" size="sm" className="gap-1">
-                        <Pencil className="h-4 w-4" /> تعديل
-                      </Button>
-                      <Button onClick={() => handleDelete(t)} variant="ghost" size="sm" className="gap-1 text-destructive hover:text-destructive">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  {myStudents.length > 0 && (
-                    <div className="divide-y divide-border">
-                      {myStudents.map((s) => (
-                        <div key={s.id} className="flex items-center justify-between px-4 py-2 hover:bg-muted/30">
-                          <div className="text-sm">{s.name || <span className="text-muted-foreground">(بدون اسم)</span>}</div>
-                          <Button onClick={() => handleUnassign(s.id)} variant="ghost" size="sm" className="text-destructive hover:text-destructive text-xs">
-                            إلغاء الربط
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {assigningTo?.id === t.id && (
-                    <div className="bg-muted/30 border-t border-border p-3 flex flex-wrap gap-2 items-center">
-                      <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
-                        <SelectTrigger className="w-64 bg-background"><SelectValue placeholder="اختر طالبة..." /></SelectTrigger>
-                        <SelectContent>
-                          {unassignedStudents.length === 0 ? (
-                            <div className="px-3 py-2 text-sm text-muted-foreground">لا توجد طالبات بدون معلمة</div>
-                          ) : unassignedStudents.map((s) => (
-                            <SelectItem key={s.id} value={s.id.toString()}>{s.name || `طالبة #${s.id}`}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Button onClick={handleAssignStudent} disabled={!selectedStudentId} size="sm">ربط</Button>
-                      <Button onClick={() => setAssigningTo(null)} variant="ghost" size="sm">إغلاق</Button>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
 
@@ -255,6 +245,7 @@ function TeachersPage() {
         )}
       </div>
 
+      {/* نافذة إضافة/تعديل */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent dir="rtl" className="sm:max-w-md">
           <DialogHeader>
@@ -277,6 +268,32 @@ function TeachersPage() {
           <DialogFooter className="gap-2">
             <Button onClick={handleSave}>{editing ? "تحديث" : "إضافة"}</Button>
             <Button onClick={() => setOpen(false)} variant="outline">إلغاء</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* نافذة ربط طالبة */}
+      <Dialog open={!!assigningTo} onOpenChange={(o) => !o && setAssigningTo(null)}>
+        <DialogContent dir="rtl" className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>ربط طالبة بـ {assigningTo?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
+              <SelectTrigger className="bg-background"><SelectValue placeholder="اختر طالبة..." /></SelectTrigger>
+              <SelectContent>
+                {unassignedStudents.length === 0 ? (
+                  <div className="px-3 py-2 text-sm text-muted-foreground">لا توجد طالبات بدون معلمة</div>
+                ) : unassignedStudents.map((s) => (
+                  <SelectItem key={s.id} value={s.id.toString()}>{s.name || `طالبة #${s.id}`}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="text-xs text-muted-foreground">يمكنك أيضاً اختيار المعلمة مباشرة من جدول الطالبات في الصفحة الرئيسية.</div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button onClick={handleAssignStudent} disabled={!selectedStudentId}>ربط</Button>
+            <Button onClick={() => setAssigningTo(null)} variant="outline">إغلاق</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

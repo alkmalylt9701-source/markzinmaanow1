@@ -14,6 +14,7 @@ interface Props {
   onDelete: (id: number) => void;
   dirtyMap: Record<number, DirtyData>;
   onDirtyChange: (studentId: number, data: DirtyData) => void;
+  teacherNames?: string[];
 }
 
 const PREFS_KEY = "competitionTablePrefs";
@@ -22,7 +23,7 @@ const loadPrefs = () => {
   try { return JSON.parse(localStorage.getItem(PREFS_KEY) || "null"); } catch { return null; }
 };
 
-export const CompetitionTable = ({ students, currentYear, onDelete, onDirtyChange }: Props) => {
+export const CompetitionTable = ({ students, currentYear, onDelete, onDirtyChange, teacherNames = [] }: Props) => {
   const initial = loadPrefs() || {};
   const [selectedTeacher, setSelectedTeacher] = useState<string>(initial.selectedTeacher ?? "all");
   const [nameFilter, setNameFilter] = useState<string>(initial.nameFilter ?? "");
@@ -162,7 +163,7 @@ export const CompetitionTable = ({ students, currentYear, onDelete, onDirtyChang
           <TableHeader currentYear={currentYear} sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
           <tbody>
             {filteredStudents.map((s, i) => (
-              <TableRow key={`${s.id}-${currentYear}`} student={s} index={i + 1} currentYear={currentYear} onDelete={onDelete} onDirtyChange={onDirtyChange} />
+              <TableRow key={`${s.id}-${currentYear}`} student={s} index={i + 1} currentYear={currentYear} onDelete={onDelete} onDirtyChange={onDirtyChange} teacherNames={teacherNames} />
             ))}
           </tbody>
         </table>

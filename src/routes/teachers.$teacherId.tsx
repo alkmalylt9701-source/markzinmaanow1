@@ -1,5 +1,5 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState, useEffect, useCallback } from "react";
+import { createFileRoute, useNavigate, Link, useLocation } from "@tanstack/react-router";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,6 +28,7 @@ function TeacherBonusPage() {
   const { teacherId } = Route.useParams();
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [teacher, setTeacher] = useState<Teacher | null>(null);
   const [year, setYear] = useState("1447");
   const [monthly, setMonthly] = useState<MonthlyRow[]>(
@@ -36,6 +37,7 @@ function TeacherBonusPage() {
   const [annual, setAnnual] = useState({
     cash_amount: "", in_kind_description: "", in_kind_value: "", notes: "",
   });
+  const [reportStudents, setReportStudents] = useState<Array<{ id: number; name: string; total: number; grade: string; parts: number; prize: number }>>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -80,6 +82,43 @@ function TeacherBonusPage() {
   }, [user, teacherId, year, navigate]);
 
   useEffect(() => { load(); }, [load]);
+
+  // تحميل تقرير طالبات هذه المعلمة للسنة الحالية
+  useEffect(() => {
+    if (!user || !teacher) return;
+    (async () => {
+      const { data: studs } = await supabase
+        .from("students").select("id,name").eq("user_id", user.id).eq("teacher", teacher.name);
+      const ids = (studs || []).map((s: any) => s.id);
+      if (ids.length === 0) { setReportStudents([]); return; }
+      const { data: yd } = await supabase
+        .from("year_data").select("student_id,total,grade,parts,prize").eq("user_id", user.id).eq("year", year).in("student_id", ids);
+      const ydMap = new Map<number, any>();
+      (yd || []).forEach((r: any) => ydMap.set(r.student_id, r));
+      setReportStudents((studs || []).map((s: any) => {
+        const r = ydMap.get(s.id) || {};
+        return {
+          id: s.id, name: s.name || `#${s.id}`,
+          total: parseFloat(r.total || "0"), grade: r.grade || "—",
+          parts: parseFloat(r.parts || "0"), prize: parseFloat(r.prize || "0"),
+        };
+      }));
+    })();
+  }, [user, teacher, year]);
+
+  // التمرير إلى القسم المطلوب من الـ hash (#monthly | #annual | #reports)
+  useEffect(() => {
+    if (loading) return;
+    const h = location.hash;
+    if (!h) return;
+    const id = h.replace(/^#/, "");
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 150);
+  }, [location.hash, loading]);
+
+  const totalReportPrize = useMemo(() => reportStudents.reduce((s, r) => s + r.prize, 0), [reportStudents]);
 
   const handleYearChange = async (y: string) => {
     setYear(y);
@@ -190,7 +229,7 @@ function TeacherBonusPage() {
         </div>
 
         {/* الإكراميات الشهرية */}
-        <div className="bg-card border border-border rounded-lg overflow-hidden shadow-sm">
+        <div id="monthly" className="bg-card border border-border rounded-lg overflow-hidden shadow-sm scroll-mt-4">
           <div className="bg-primary/10 border-b border-border px-4 py-3 flex items-center justify-between">
             <div className="font-bold text-primary flex items-center gap-2">
               <Gift className="h-5 w-5" /> الإكرامية الشهرية
@@ -237,7 +276,7 @@ function TeacherBonusPage() {
         </div>
 
         {/* الإكرامية السنوية - تظهر دائماً مع تنبيه عند نهاية رمضان */}
-        <div className="bg-card border-2 border-primary/40 rounded-lg overflow-hidden shadow-sm">
+        <div id="annual" className="bg-card border-2 border-primary/40 rounded-lg overflow-hidden shadow-sm scroll-mt-4">
           <div className="bg-primary/15 border-b border-border px-4 py-3 flex items-center justify-between flex-wrap gap-2">
             <div className="font-bold text-primary flex items-center gap-2">
               🎁 الإكرامية السنوية (نهاية رمضان)
@@ -282,6 +321,47 @@ function TeacherBonusPage() {
               💡 يمكن تسجيل النقدية فقط، أو العينية فقط، أو كلاهما معاً.
             </div>
           </div>
+        </div>
+
+        {/* تقارير الطالبات */}
+        <div id="reports" className="bg-card border border-border rounded-lg overflow-hidden shadow-sm scroll-mt-4">
+          <div className="bg-primary/10 border-b border-border px-4 py-3 flex items-center justify-between flex-wrap gap-2">
+            <div className="font-bold text-primary">📋 تقرير طالبات المعلمة ({reportStudents.length})</div>
+            <div className="text-sm">
+              <span className="text-muted-foreground">إجمالي مكافآت الطالبات: </span>
+              <span className="font-bold text-primary">{totalReportPrize.toLocaleString()} ر.س</span>
+            </div>
+          </div>
+          {reportStudents.length === 0 ? (
+            <div className="p-6 text-center text-muted-foreground text-sm">لا توجد طالبات مرتبطات بهذه المعلمة لسنة {year}هـ.</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/50">
+                  <tr>
+                    <th className="px-3 py-2 text-center font-semibold w-12">#</th>
+                    <th className="px-3 py-2 text-right font-semibold">الطالبة</th>
+                    <th className="px-3 py-2 text-center font-semibold">الأجزاء</th>
+                    <th className="px-3 py-2 text-center font-semibold">المجموع</th>
+                    <th className="px-3 py-2 text-center font-semibold">التقدير</th>
+                    <th className="px-3 py-2 text-center font-semibold">المكافأة (ر.س)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {reportStudents.map((s, i) => (
+                    <tr key={s.id} className="border-t border-border hover:bg-muted/20">
+                      <td className="px-3 py-2 text-center">{i + 1}</td>
+                      <td className="px-3 py-2 font-semibold">{s.name}</td>
+                      <td className="px-3 py-2 text-center">{s.parts || "—"}</td>
+                      <td className="px-3 py-2 text-center font-bold">{s.total || "—"}</td>
+                      <td className="px-3 py-2 text-center">{s.grade}</td>
+                      <td className="px-3 py-2 text-center font-bold text-islamic-green">{s.prize.toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </div>
