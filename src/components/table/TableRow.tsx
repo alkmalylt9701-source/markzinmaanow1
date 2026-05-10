@@ -1,6 +1,7 @@
 import { Student, HifzHistory, YearData } from "@/types/student";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Trash2 } from "lucide-react";
 import { StudentReport } from "@/components/StudentReport";
 import { useState, useEffect, useCallback, memo } from "react";
@@ -12,6 +13,7 @@ interface Props {
   currentYear: string;
   onDelete: (id: number) => void;
   onDirtyChange: (studentId: number, data: { name: string; teacher: string; history: HifzHistory; yearData: YearData }) => void;
+  teacherNames?: string[];
 }
 
 const defaultYearData = (): YearData => ({
