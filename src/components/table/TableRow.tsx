@@ -181,5 +181,6 @@ export const TableRow = memo(TableRowComponent, (prev, next) =>
   prev.index === next.index &&
   prev.currentYear === next.currentYear &&
   prev.onDelete === next.onDelete &&
-  prev.onDirtyChange === next.onDirtyChange
+  prev.onDirtyChange === next.onDirtyChange &&
+  prev.teacherNames === next.teacherNames
 );
