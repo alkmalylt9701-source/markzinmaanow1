@@ -229,7 +229,7 @@ function TeacherBonusPage() {
         </div>
 
         {/* الإكراميات الشهرية */}
-        <div className="bg-card border border-border rounded-lg overflow-hidden shadow-sm">
+        <div id="monthly" className="bg-card border border-border rounded-lg overflow-hidden shadow-sm scroll-mt-4">
           <div className="bg-primary/10 border-b border-border px-4 py-3 flex items-center justify-between">
             <div className="font-bold text-primary flex items-center gap-2">
               <Gift className="h-5 w-5" /> الإكرامية الشهرية
