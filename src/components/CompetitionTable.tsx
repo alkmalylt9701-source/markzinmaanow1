@@ -14,6 +14,7 @@ interface Props {
   onDelete: (id: number) => void;
   dirtyMap: Record<number, DirtyData>;
   onDirtyChange: (studentId: number, data: DirtyData) => void;
+  teacherNames?: string[];
 }
 
 const PREFS_KEY = "competitionTablePrefs";
