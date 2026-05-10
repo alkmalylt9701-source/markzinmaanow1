@@ -22,7 +22,7 @@ const defaultYearData = (): YearData => ({
   teacher: ''
 });
 
-const TableRowComponent = ({ student, index, currentYear, onDelete, onDirtyChange }: Props) => {
+const TableRowComponent = ({ student, index, currentYear, onDelete, onDirtyChange, teacherNames = [] }: Props) => {
   const currentYearNum = parseInt(currentYear);
   const [name, setName] = useState(student.name);
   const [history, setHistory] = useState<HifzHistory>(student.hifzHistory || {});
