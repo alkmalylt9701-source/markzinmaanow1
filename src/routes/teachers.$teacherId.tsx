@@ -83,6 +83,43 @@ function TeacherBonusPage() {
 
   useEffect(() => { load(); }, [load]);
 
+  // تحميل تقرير طالبات هذه المعلمة للسنة الحالية
+  useEffect(() => {
+    if (!user || !teacher) return;
+    (async () => {
+      const { data: studs } = await supabase
+        .from("students").select("id,name").eq("user_id", user.id).eq("teacher", teacher.name);
+      const ids = (studs || []).map((s: any) => s.id);
+      if (ids.length === 0) { setReportStudents([]); return; }
+      const { data: yd } = await supabase
+        .from("year_data").select("student_id,total,grade,parts,prize").eq("user_id", user.id).eq("year", year).in("student_id", ids);
+      const ydMap = new Map<number, any>();
+      (yd || []).forEach((r: any) => ydMap.set(r.student_id, r));
+      setReportStudents((studs || []).map((s: any) => {
+        const r = ydMap.get(s.id) || {};
+        return {
+          id: s.id, name: s.name || `#${s.id}`,
+          total: parseFloat(r.total || "0"), grade: r.grade || "—",
+          parts: parseFloat(r.parts || "0"), prize: parseFloat(r.prize || "0"),
+        };
+      }));
+    })();
+  }, [user, teacher, year]);
+
+  // التمرير إلى القسم المطلوب من الـ hash (#monthly | #annual | #reports)
+  useEffect(() => {
+    if (loading) return;
+    const h = location.hash;
+    if (!h) return;
+    const id = h.replace(/^#/, "");
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 150);
+  }, [location.hash, loading]);
+
+  const totalReportPrize = useMemo(() => reportStudents.reduce((s, r) => s + r.prize, 0), [reportStudents]);
+
   const handleYearChange = async (y: string) => {
     setYear(y);
     await setActiveYear(y);
