@@ -61,6 +61,15 @@ function IndexPage() {
     getActiveYear().then(setCurrentYear);
   }, [user]);
 
+  // تحميل قائمة المعلمات لاستخدامها في القائمة المنسدلة بصف الطالبة
+  const loadTeachers = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase.from("teachers").select("name").eq("user_id", user.id).order("name");
+    setTeacherNames((data || []).map((t: { name: string }) => t.name));
+  }, [user]);
+
+  useEffect(() => { loadTeachers(); }, [loadTeachers]);
+
   useEffect(() => { loadData(); }, [loadData]);
 
   const handleDirtyChange = useCallback((id: number, d: DirtyData) => {
