@@ -94,8 +94,24 @@ const TableRowComponent = ({ student, index, currentYear, onDelete, onDirtyChang
         <Input value={name} onChange={(e) => updateName(e.target.value)} placeholder="الاسم الأول الأب الجد" title={name} className="text-right border-0 focus-visible:ring-1 w-full px-2" />
       </td>
 
-      <td className="border border-border p-1">
-        <Input value={yearData.teacher} onChange={(e) => updateTeacher(e.target.value)} placeholder="المعلمة" className="text-center border-0 focus-visible:ring-1" />
+      <td className="border border-border p-1 min-w-[160px]">
+        <Select
+          value={yearData.teacher || "__none__"}
+          onValueChange={(v) => updateTeacher(v === "__none__" ? "" : v)}
+        >
+          <SelectTrigger className="h-8 border-0 focus:ring-1 text-center bg-transparent">
+            <SelectValue placeholder="—" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__none__">— بدون —</SelectItem>
+            {teacherNames.map((n) => (
+              <SelectItem key={n} value={n}>{n}</SelectItem>
+            ))}
+            {yearData.teacher && !teacherNames.includes(yearData.teacher) && (
+              <SelectItem value={yearData.teacher}>{yearData.teacher} (غير مسجلة)</SelectItem>
+            )}
+          </SelectContent>
+        </Select>
       </td>
 
       <td className="border border-border p-1 bg-accent/15 text-center font-semibold">
