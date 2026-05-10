@@ -28,6 +28,7 @@ function TeacherBonusPage() {
   const { teacherId } = Route.useParams();
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [teacher, setTeacher] = useState<Teacher | null>(null);
   const [year, setYear] = useState("1447");
   const [monthly, setMonthly] = useState<MonthlyRow[]>(
@@ -36,6 +37,7 @@ function TeacherBonusPage() {
   const [annual, setAnnual] = useState({
     cash_amount: "", in_kind_description: "", in_kind_value: "", notes: "",
   });
+  const [reportStudents, setReportStudents] = useState<Array<{ id: number; name: string; total: number; grade: string; parts: number; prize: number }>>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
