@@ -276,7 +276,7 @@ function TeacherBonusPage() {
         </div>
 
         {/* الإكرامية السنوية - تظهر دائماً مع تنبيه عند نهاية رمضان */}
-        <div className="bg-card border-2 border-primary/40 rounded-lg overflow-hidden shadow-sm">
+        <div id="annual" className="bg-card border-2 border-primary/40 rounded-lg overflow-hidden shadow-sm scroll-mt-4">
           <div className="bg-primary/15 border-b border-border px-4 py-3 flex items-center justify-between flex-wrap gap-2">
             <div className="font-bold text-primary flex items-center gap-2">
               🎁 الإكرامية السنوية (نهاية رمضان)
