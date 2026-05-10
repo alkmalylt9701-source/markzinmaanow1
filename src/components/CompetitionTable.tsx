@@ -163,7 +163,7 @@ export const CompetitionTable = ({ students, currentYear, onDelete, onDirtyChang
           <TableHeader currentYear={currentYear} sortField={sortField} sortDirection={sortDirection} onSort={handleSort} />
           <tbody>
             {filteredStudents.map((s, i) => (
-              <TableRow key={`${s.id}-${currentYear}`} student={s} index={i + 1} currentYear={currentYear} onDelete={onDelete} onDirtyChange={onDirtyChange} />
+              <TableRow key={`${s.id}-${currentYear}`} student={s} index={i + 1} currentYear={currentYear} onDelete={onDelete} onDirtyChange={onDirtyChange} teacherNames={teacherNames} />
             ))}
           </tbody>
         </table>
