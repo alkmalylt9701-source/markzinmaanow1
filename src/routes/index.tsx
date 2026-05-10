@@ -27,6 +27,7 @@ function IndexPage() {
   const navigate = useNavigate();
   const [students, setStudents] = useState<Student[]>([]);
   const [currentYear, setCurrentYear] = useState("1447");
+  const [teacherNames, setTeacherNames] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [dirtyMap, setDirtyMap] = useState<Record<number, DirtyData>>({});
