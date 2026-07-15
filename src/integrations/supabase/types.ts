@@ -191,6 +191,38 @@ export type Database = {
           },
         ]
       }
+      teacher_year_active: {
+        Row: {
+          created_at: string
+          id: string
+          teacher_id: string
+          user_id: string
+          year: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          teacher_id: string
+          user_id: string
+          year: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          teacher_id?: string
+          user_id?: string
+          year?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_year_active_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       teachers: {
         Row: {
           created_at: string
