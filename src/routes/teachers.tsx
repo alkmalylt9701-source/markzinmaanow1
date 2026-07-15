@@ -52,17 +52,27 @@ function TeachersPage() {
   const load = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    const [tRes, sRes, aRes] = await Promise.all([
+    const [tRes, sRes, aRes, yRes] = await Promise.all([
       supabase.from("teachers").select("*").eq("user_id", user.id).order("name"),
       supabase.from("students").select("id,name,teacher").eq("user_id", user.id).order("id"),
       supabase.from("teacher_year_active").select("teacher_id").eq("user_id", user.id).eq("year", year),
+      supabase.from("year_data").select("student_id,teacher").eq("user_id", user.id).eq("year", year),
     ]);
     if (tRes.error) toast.error("تعذر تحميل المعلمات");
+    const yearMap = new Map<number, string>();
+    (yRes.data || []).forEach((r: any) => yearMap.set(r.student_id, r.teacher || ""));
+    const activeYear = await getActiveYear();
+    const merged = (sRes.data || []).map((s: any) => ({
+      id: s.id,
+      name: s.name,
+      teacher: yearMap.has(s.id) ? (yearMap.get(s.id) || "") : (year === activeYear ? (s.teacher || "") : ""),
+    }));
     setTeachers((tRes.data || []) as Teacher[]);
-    setStudents((sRes.data || []) as StudentRow[]);
+    setStudents(merged as StudentRow[]);
     setActiveIds(new Set((aRes.data || []).map((r: any) => r.teacher_id)));
     setLoading(false);
   }, [user, year]);
+
 
   useEffect(() => { load(); }, [load]);
 
@@ -136,12 +146,20 @@ function TeachersPage() {
 
   const assignStudent = async (studentId: number, teacherName: string) => {
     if (!user) return;
-    const { error } = await supabase.from("students")
-      .update({ teacher: teacherName }).eq("id", studentId).eq("user_id", user.id);
-    if (error) { toast.error("فشل التحديث"); return; }
+    // اكتب الإسناد في بيانات هذا العام (year_data) حتى لا يتأثر باقي الأعوام
+    const { error: yErr } = await supabase.from("year_data")
+      .upsert({ user_id: user.id, student_id: studentId, year, teacher: teacherName }, { onConflict: "student_id,year" });
+    if (yErr) { toast.error("فشل التحديث"); return; }
+    // حدّث الإسناد الافتراضي في جدول الطالبات فقط إذا كان العام المختار هو العام النشط
+    const activeYear = await getActiveYear();
+    if (year === activeYear) {
+      await supabase.from("students")
+        .update({ teacher: teacherName }).eq("id", studentId).eq("user_id", user.id);
+    }
     toast.success("تم التحديث");
     await load();
   };
+
 
   const removeStudent = async (studentId: number) => {
     if (!user) return;
