@@ -146,12 +146,20 @@ function TeachersPage() {
 
   const assignStudent = async (studentId: number, teacherName: string) => {
     if (!user) return;
-    const { error } = await supabase.from("students")
-      .update({ teacher: teacherName }).eq("id", studentId).eq("user_id", user.id);
-    if (error) { toast.error("فشل التحديث"); return; }
+    // اكتب الإسناد في بيانات هذا العام (year_data) حتى لا يتأثر باقي الأعوام
+    const { error: yErr } = await supabase.from("year_data")
+      .upsert({ user_id: user.id, student_id: studentId, year, teacher: teacherName }, { onConflict: "student_id,year" });
+    if (yErr) { toast.error("فشل التحديث"); return; }
+    // حدّث الإسناد الافتراضي في جدول الطالبات فقط إذا كان العام المختار هو العام النشط
+    const activeYear = await getActiveYear();
+    if (year === activeYear) {
+      await supabase.from("students")
+        .update({ teacher: teacherName }).eq("id", studentId).eq("user_id", user.id);
+    }
     toast.success("تم التحديث");
     await load();
   };
+
 
   const removeStudent = async (studentId: number) => {
     if (!user) return;
