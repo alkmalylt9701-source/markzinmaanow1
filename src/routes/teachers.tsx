@@ -115,25 +115,28 @@ function TeachersPage() {
       const oldName = editing.name;
       const { error } = await supabase.from("teachers").update(payload).eq("id", editing.id);
       if (error) { toast.error(error.code === "23505" ? "اسم المعلمة موجود مسبقاً" : "فشل الحفظ"); return; }
+      setTeachers((prev) => prev.map((t) => t.id === editing.id ? { ...t, name, phone: payload.phone, notes: payload.notes } : t));
       if (oldName !== name) {
+        setStudents((prev) => prev.map((s) => s.teacher === oldName ? { ...s, teacher: name } : s));
         await supabase.from("students").update({ teacher: name }).eq("user_id", user.id).eq("teacher", oldName);
       }
       toast.success("تم التحديث");
     } else {
-      const { error } = await supabase.from("teachers").insert(payload);
+      const { data, error } = await supabase.from("teachers").insert(payload).select().single();
       if (error) { toast.error(error.code === "23505" ? "اسم المعلمة موجود مسبقاً" : "فشل الإضافة"); return; }
+      if (data) setTeachers((prev) => [...prev, data as Teacher].sort((a, b) => a.name.localeCompare(b.name)));
       toast.success("تمت الإضافة");
     }
     setOpen(false);
-    await load();
   };
 
   const handleDelete = async (t: Teacher) => {
     if (!confirm(`حذف المعلمة "${t.name}"؟`)) return;
     const { error } = await supabase.from("teachers").delete().eq("id", t.id);
     if (error) { toast.error("فشل الحذف"); return; }
+    setTeachers((prev) => prev.filter((x) => x.id !== t.id));
+    setActiveIds((prev) => { const n = new Set(prev); n.delete(t.id); return n; });
     toast.success("تم الحذف");
-    await load();
   };
 
   const toggleExpand = (id: string) => {
@@ -146,18 +149,16 @@ function TeachersPage() {
 
   const assignStudent = async (studentId: number, teacherName: string) => {
     if (!user) return;
-    // اكتب الإسناد في بيانات هذا العام (year_data) حتى لا يتأثر باقي الأعوام
+    setStudents((prev) => prev.map((s) => s.id === studentId ? { ...s, teacher: teacherName } : s));
     const { error: yErr } = await supabase.from("year_data")
       .upsert({ user_id: user.id, student_id: studentId, year, teacher: teacherName }, { onConflict: "student_id,year" });
-    if (yErr) { toast.error("فشل التحديث"); return; }
-    // حدّث الإسناد الافتراضي في جدول الطالبات فقط إذا كان العام المختار هو العام النشط
+    if (yErr) { toast.error("فشل التحديث"); await load(); return; }
     const activeYear = await getActiveYear();
     if (year === activeYear) {
       await supabase.from("students")
         .update({ teacher: teacherName }).eq("id", studentId).eq("user_id", user.id);
     }
     toast.success("تم التحديث");
-    await load();
   };
 
 
