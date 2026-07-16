@@ -22,15 +22,43 @@ function AuthPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) navigate({ to: "/" });
-    });
+    (async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        // إذا فشل جلب الجلسة أو كان الـ refresh token تالفاً، نظّف التخزين المحلي
+        if (error || !data.session) {
+          try {
+            Object.keys(localStorage)
+              .filter((k) => k.startsWith("sb-") && k.endsWith("-auth-token"))
+              .forEach((k) => localStorage.removeItem(k));
+          } catch {}
+          return;
+        }
+        navigate({ to: "/" });
+      } catch {
+        try {
+          Object.keys(localStorage)
+            .filter((k) => k.startsWith("sb-") && k.endsWith("-auth-token"))
+            .forEach((k) => localStorage.removeItem(k));
+        } catch {}
+      }
+    })();
   }, [navigate]);
+
+  const clearStaleAuth = () => {
+    try {
+      Object.keys(localStorage)
+        .filter((k) => k.startsWith("sb-") && k.endsWith("-auth-token"))
+        .forEach((k) => localStorage.removeItem(k));
+    } catch {}
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
+      // نظّف أي جلسة قديمة/تالفة قبل محاولة الدخول لتجنّب حلقة تحديث التوكن
+      clearStaleAuth();
       if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
           email, password,
@@ -47,7 +75,11 @@ function AuthPage() {
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "خطأ";
-      toast.error(msg.includes("Invalid login") ? "البريد أو كلمة المرور غير صحيحة" : msg);
+      if (msg.includes("Failed to fetch")) {
+        toast.error("تعذّر الاتصال بالخادم. تحقّق من الإنترنت ثم أعد المحاولة");
+      } else {
+        toast.error(msg.includes("Invalid login") ? "البريد أو كلمة المرور غير صحيحة" : msg);
+      }
     } finally {
       setLoading(false);
     }
