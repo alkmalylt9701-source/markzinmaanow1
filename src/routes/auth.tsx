@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { BookOpen, LogIn, UserPlus } from "lucide-react";
 import logo from "@/assets/logo.png";
+import { clearStoredAuthSession } from "@/utils/authCleanup";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({ meta: [{ title: "تسجيل الدخول - المسابقة الرمضانية" }] }),
@@ -22,64 +23,60 @@ function AuthPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const { data, error } = await supabase.auth.getSession();
-        // إذا فشل جلب الجلسة أو كان الـ refresh token تالفاً، نظّف التخزين المحلي
-        if (error || !data.session) {
-          try {
-            Object.keys(localStorage)
-              .filter((k) => k.startsWith("sb-") && k.endsWith("-auth-token"))
-              .forEach((k) => localStorage.removeItem(k));
-          } catch {}
-          return;
-        }
-        navigate({ to: "/" });
-      } catch {
-        try {
-          Object.keys(localStorage)
-            .filter((k) => k.startsWith("sb-") && k.endsWith("-auth-token"))
-            .forEach((k) => localStorage.removeItem(k));
-        } catch {}
-      }
-    })();
-  }, [navigate]);
+    clearStoredAuthSession();
+  }, []);
 
-  const clearStaleAuth = () => {
+  const resetLocalAuth = async () => {
+    clearStoredAuthSession();
     try {
-      Object.keys(localStorage)
-        .filter((k) => k.startsWith("sb-") && k.endsWith("-auth-token"))
-        .forEach((k) => localStorage.removeItem(k));
-    } catch {}
+      await supabase.auth.signOut({ scope: "local" });
+    } catch {
+      clearStoredAuthSession();
+    }
+  };
+
+  const getFriendlyAuthError = (message: string) => {
+    if (message.includes("Failed to fetch")) {
+      return "تعذّر الاتصال بخدمة الدخول. إن كنت تستخدم المعاينة فجرّب الرابط المنشور للتطبيق، أو أعد المحاولة بعد تحديث الصفحة";
+    }
+    if (message.includes("Invalid login")) return "البريد أو كلمة المرور غير صحيحة";
+    if (message.includes("Email not confirmed")) return "يجب تأكيد البريد الإلكتروني أولاً ثم تسجيل الدخول";
+    if (message.includes("User already registered")) return "هذا البريد مسجل مسبقاً، استخدم تسجيل الدخول";
+    if (message.includes("Signup is disabled")) return "إنشاء الحسابات غير مفعّل حالياً";
+    return message;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      // نظّف أي جلسة قديمة/تالفة قبل محاولة الدخول لتجنّب حلقة تحديث التوكن
-      clearStaleAuth();
+      await resetLocalAuth();
+      const normalizedEmail = email.trim();
+
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
-          email, password,
+        const { data, error } = await supabase.auth.signUp({
+          email: normalizedEmail,
+          password,
           options: { emailRedirectTo: window.location.origin },
         });
         if (error) throw error;
-        toast.success("تم إنشاء الحساب، يمكنك تسجيل الدخول الآن");
-        setMode("login");
+
+        if (data.session) {
+          toast.success("تم إنشاء الحساب وتسجيل الدخول بنجاح");
+          navigate({ to: "/" });
+        } else {
+          toast.success("تم إنشاء الحساب. إن وصلت رسالة تأكيد للبريد، أكّدها ثم سجّل الدخول");
+          setMode("login");
+        }
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
         if (error) throw error;
         toast.success("تم تسجيل الدخول بنجاح");
         navigate({ to: "/" });
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "خطأ";
-      if (msg.includes("Failed to fetch")) {
-        toast.error("تعذّر الاتصال بالخادم. تحقّق من الإنترنت ثم أعد المحاولة");
-      } else {
-        toast.error(msg.includes("Invalid login") ? "البريد أو كلمة المرور غير صحيحة" : msg);
-      }
+      toast.error(getFriendlyAuthError(msg));
     } finally {
       setLoading(false);
     }
