@@ -1,5 +1,5 @@
 // Advanced PWA Service Worker - Offline first with API caching
-const VERSION = 'v3';
+const VERSION = 'v4';
 const STATIC_CACHE = `static-${VERSION}`;
 const RUNTIME_CACHE = `runtime-${VERSION}`;
 const IMAGE_CACHE = `images-${VERSION}`;
@@ -9,7 +9,6 @@ const SUPABASE_HOST = 'qcijgvrosbypsyljpcds.supabase.co';
 
 const PRECACHE_URLS = [
   '/',
-  '/auth',
   '/documents',
   '/manifest.webmanifest',
   '/icon-192.png',
