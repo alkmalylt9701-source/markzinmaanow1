@@ -21,15 +21,17 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showDebug, setShowDebug] = useState(false);
 
+  // لم يعد يتم مسح الجلسة تلقائياً عند تحميل صفحة الدخول لتجنّب خلع الجلسات غير المقصود
   useEffect(() => {
-    clearStoredAuthSession();
+    // clearStoredAuthSession(); // يمكنك إعادة تفعيلها هنا إن رغبت
   }, []);
 
   const resetLocalAuth = async () => {
     clearStoredAuthSession();
     try {
-      await supabase.auth.signOut({ scope: "local" });
+      await (supabase.auth as any).signOut?.({ scope: "local" });
     } catch {
       clearStoredAuthSession();
     }
@@ -37,11 +39,11 @@ function AuthPage() {
 
   const getFriendlyAuthError = (message: string) => {
     if (message.includes("Failed to fetch")) {
-      return "تعذّر الاتصال بخدمة الدخول. إن كنت تستخدم المعاينة فجرّب الرابط المنشور للتطبيق، أو أعد المحاولة بعد تحديث الصفحة";
+      return "تعذّر الاتصال بخدمة الدخول. تأكد من إعداد متغيّرات البيئة وتهيئة Supabase (VITE_SUPABASE_URL و VITE_SUPABASE_PUBLISHABLE_KEY).";
     }
     if (message.includes("Invalid login")) return "البريد أو كلمة المرور غير صحيحة";
     if (message.includes("Email not confirmed")) return "يجب تأكيد البريد الإلكتروني أولاً ثم تسجيل الدخول";
-    if (message.includes("User already registered")) return "هذا البريد مسجل مسبقاً، استخدم تسجيل الدخول";
+    if (message.includes("User already registered")) return "ه��ا البريد مسجل مسبقاً، استخدم تسجيل الدخول";
     if (message.includes("Signup is disabled")) return "إنشاء الحسابات غير مفعّل حالياً";
     return message;
   };
@@ -54,14 +56,15 @@ function AuthPage() {
       const normalizedEmail = email.trim();
 
       if (mode === "signup") {
-        const { data, error } = await supabase.auth.signUp({
+        const { data, error } = await (supabase.auth as any).signUp({
           email: normalizedEmail,
           password,
           options: { emailRedirectTo: window.location.origin },
         });
+
         if (error) throw error;
 
-        if (data.session) {
+        if (data?.session) {
           toast.success("تم إنشاء الحساب وتسجيل الدخول بنجاح");
           navigate({ to: "/" });
         } else {
@@ -69,14 +72,67 @@ function AuthPage() {
           setMode("login");
         }
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
+        const { data, error } = await (supabase.auth as any).signInWithPassword({ email: normalizedEmail, password });
+
         if (error) throw error;
-        toast.success("تم تسجيل الدخول بنجاح");
-        navigate({ to: "/" });
+
+        if (data?.session || data?.user) {
+          toast.success("تم تسجيل الدخول بنجاح");
+          navigate({ to: "/" });
+        } else {
+          toast.error("لم يتم تسجيل الدخول. تحقق من البريد وكلمة المرور أو حاول إعادة التحميل.");
+        }
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "خطأ";
+      const msg = err instanceof Error ? err.message : "خطأ غير متوقع";
       toast.error(getFriendlyAuthError(msg));
+      if (showDebug) console.error("Auth error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // زر "نسيت كلمة المرور" — يرسل رسالة إعادة ضبط كلمة المرور
+  const handleForgotPassword = async () => {
+    const trimmed = email.trim();
+    if (!trimmed) {
+      toast.error("أدخل بريدك الإلكتروني أولاً لإرسال رابط إعادة الضبط");
+      return;
+    }
+    setLoading(true);
+    try {
+      const authAny = supabase.auth as any;
+      // حاول استخدام دالة resetPasswordForEmail إذا كانت متاحة في نسخة SDK
+      if (typeof authAny.resetPasswordForEmail === "function") {
+        const res = await authAny.resetPasswordForEmail(trimmed, { redirectTo: window.location.origin });
+        if (res?.error) throw res.error;
+        toast.success("تم إرسال رابط إعادة ضبط كلمة المرور إلى بريدك (إن كان مسجلاً)");
+      } else if (typeof authAny.api?.resetPasswordForEmail === "function") {
+        const res = await authAny.api.resetPasswordForEmail(trimmed);
+        if (res?.error) throw res.error;
+        toast.success("تم إرسال رابط إعادة ضبط كلمة المرور إلى بريدك (إن كان مسجلاً)");
+      } else {
+        // كخطة احتياطية، نستخدم واجهة REST العامة لإرسال طلب الاسترداد
+        const supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+        const apiKey = (import.meta as any).env?.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY;
+        if (!supabaseUrl || !apiKey) {
+          throw new Error("Missing Supabase URL or API key for password reset fallback");
+        }
+        const resp = await fetch(`${supabaseUrl.replace(/\/$/, "")}/auth/v1/recover`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", apikey: apiKey },
+          body: JSON.stringify({ email: trimmed }),
+        });
+        if (!resp.ok) {
+          const body = await resp.text();
+          throw new Error(`Password reset failed: ${resp.status} ${body}`);
+        }
+        toast.success("تم إرسال رابط إعادة ضبط كلمة المرور إلى بريدك (إن كان مسجلاً)");
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "فشل إرسال طلب إعادة الضبط";
+      toast.error(getFriendlyAuthError(msg));
+      if (showDebug) console.error("Reset password error:", err);
     } finally {
       setLoading(false);
     }
@@ -100,9 +156,15 @@ function AuthPage() {
             <Label htmlFor="password">كلمة المرور</Label>
             <Input id="password" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
           </div>
-          <Button type="submit" disabled={loading} className="w-full gap-2">
-            {mode === "login" ? <><LogIn className="h-4 w-4" /> دخول</> : <><UserPlus className="h-4 w-4" /> إنشاء حساب</>}
-          </Button>
+
+          <div className="flex gap-2">
+            <Button type="submit" disabled={loading} className="flex-1 gap-2">
+              {mode === "login" ? <><LogIn className="h-4 w-4" /> دخول</> : <><UserPlus className="h-4 w-4" /> إنشاء حساب</>}
+            </Button>
+            <Button type="button" variant="ghost" onClick={handleForgotPassword} disabled={loading} className="gap-2">
+              نسيت كلمة المرور؟
+            </Button>
+          </div>
         </form>
 
         <div className="mt-4 text-center text-sm">
