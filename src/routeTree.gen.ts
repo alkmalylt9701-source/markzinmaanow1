@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TeachersRouteImport } from './routes/teachers'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as DocumentsRouteImport } from './routes/documents'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
@@ -18,6 +19,11 @@ import { Route as TeachersTeacherIdRouteImport } from './routes/teachers.$teache
 const TeachersRoute = TeachersRouteImport.update({
   id: '/teachers',
   path: '/teachers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DocumentsRoute = DocumentsRouteImport.update({
@@ -45,6 +51,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/documents': typeof DocumentsRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/teachers': typeof TeachersRouteWithChildren
   '/teachers/$teacherId': typeof TeachersTeacherIdRoute
 }
@@ -52,6 +59,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/documents': typeof DocumentsRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/teachers': typeof TeachersRouteWithChildren
   '/teachers/$teacherId': typeof TeachersTeacherIdRoute
 }
@@ -60,19 +68,33 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/documents': typeof DocumentsRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/teachers': typeof TeachersRouteWithChildren
   '/teachers/$teacherId': typeof TeachersTeacherIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/documents' | '/teachers' | '/teachers/$teacherId'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/documents'
+    | '/reset-password'
+    | '/teachers'
+    | '/teachers/$teacherId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/documents' | '/teachers' | '/teachers/$teacherId'
+  to:
+    | '/'
+    | '/auth'
+    | '/documents'
+    | '/reset-password'
+    | '/teachers'
+    | '/teachers/$teacherId'
   id:
     | '__root__'
     | '/'
     | '/auth'
     | '/documents'
+    | '/reset-password'
     | '/teachers'
     | '/teachers/$teacherId'
   fileRoutesById: FileRoutesById
@@ -81,6 +103,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
   DocumentsRoute: typeof DocumentsRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   TeachersRoute: typeof TeachersRouteWithChildren
 }
 
@@ -91,6 +114,13 @@ declare module '@tanstack/react-router' {
       path: '/teachers'
       fullPath: '/teachers'
       preLoaderRoute: typeof TeachersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/documents': {
@@ -140,6 +170,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   DocumentsRoute: DocumentsRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   TeachersRoute: TeachersRouteWithChildren,
 }
 export const routeTree = rootRouteImport
