@@ -34,7 +34,7 @@ function AuthPage() {
 
   const getFriendlyAuthError = (message: string) => {
     if (message.includes("Failed to fetch")) {
-      return "تعذّر الاتصال بخدمة الدخول. تأكد من إعداد متغيّرات البيئة وتهيئة Supabase (VITE_SUPABASE_URL و VITE_SUPABASE_PUBLISHABLE_KEY).";
+      return "تعذّر الاتصال بخدمة الدخول. تأكدي من اتصال الإنترنت ثم أعيدي المحاولة.";
     }
     if (message.includes("Invalid login")) return "البريد أو كلمة المرور غير صحيحة";
     if (message.includes("Email not confirmed")) return "يجب فتح رسالة التأكيد من البريد الإلكتروني أولاً، ثم الرجوع لتسجيل الدخول";
@@ -115,7 +115,7 @@ function AuthPage() {
         const supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
         const apiKey = (import.meta as any).env?.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY;
         if (!supabaseUrl || !apiKey) {
-          throw new Error("Missing Supabase URL or API key for password reset fallback");
+          throw new Error("تعذّر تجهيز طلب إعادة التعيين حالياً");
         }
         const resp = await fetch(`${supabaseUrl.replace(/\/$/, "")}/auth/v1/recover`, {
           method: "POST",
