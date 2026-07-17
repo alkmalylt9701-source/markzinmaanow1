@@ -9,7 +9,6 @@ import { toast } from "sonner";
 import { BookOpen, LogIn, UserPlus } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { clearStoredAuthSession } from "@/utils/authCleanup";
-import { registerServiceWorker } from "@/registerServiceWorker";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({ meta: [{ title: "تسجيل الدخول - المسابقة الرمضانية" }] }),
@@ -29,11 +28,6 @@ function AuthPage() {
     // clearStoredAuthSession(); // يمكنك إعادة تفعيلها هنا إن رغبت
   }, []);
 
-  // سجّل الـ Service Worker عند تحميل صفحة المصادقة (إذا كانت مدعومة)
-  useEffect(() => {
-    try { registerServiceWorker(); } catch (e) { console.warn('SW register failed', e); }
-  }, []);
-
   const resetLocalAuth = async () => {
     clearStoredAuthSession();
     try {
@@ -48,8 +42,13 @@ function AuthPage() {
       return "تعذّر الاتصال بخدمة الدخول. تأكد من إعداد متغيّرات البيئة وتهيئة Supabase (VITE_SUPABASE_URL و VITE_SUPABASE_PUBLISHABLE_KEY).";
     }
     if (message.includes("Invalid login")) return "البريد أو كلمة المرور غير صحيحة";
+    if (message.includes("Email not confirmed")) return "يجب فتح رسالة التأكيد من البريد الإلكتروني أولاً، ثم الرجوع لتسجيل الدخول";
+    if (message.includes("weak_password") || message.includes("known to be weak") || message.includes("pwned")) {
+      return "كلمة المرور ضعيفة أو مستخدمة كثيراً. اختاري كلمة أقوى تحتوي أحرفاً كبيرة وصغيرة وأرقاماً ورمزاً خاصاً.";
+    }
+    if (message.includes("Password should be")) return "كلمة المرور قصيرة؛ يجب أن تكون 6 أحرف على الأقل ويفضل أن تكون أقوى.";
     if (message.includes("Email not confirmed")) return "يجب تأكيد البريد الإلكتروني أولاً ثم تسجيل الدخول";
-    if (message.includes("User already registered")) return "ه��ا البريد مسجل مسبقاً، استخدم تسجيل الدخول";
+    if (message.includes("User already registered")) return "هذا البريد مسجل مسبقاً، استخدمي تسجيل الدخول أو زر نسيت كلمة المرور";
     if (message.includes("Signup is disabled")) return "إنشاء الحسابات غير مفعّل حالياً";
     return message;
   };
@@ -74,7 +73,7 @@ function AuthPage() {
           toast.success("تم إنشاء الحساب وتسجيل الدخول بنجاح");
           navigate({ to: "/" });
         } else {
-          toast.success("تم إنشاء الحساب. إن وصلت رسالة تأكيد للبريد، أكّدها ثم سجّل الدخول");
+          toast.success("تم إنشاء الحساب. افتحي رسالة التأكيد في البريد الإلكتروني، ثم سجّلي الدخول هنا.");
           setMode("login");
         }
       } else {
@@ -110,7 +109,7 @@ function AuthPage() {
       const authAny = supabase.auth as any;
       // حاول استخدام دالة resetPasswordForEmail إذا كانت متاحة في نسخة SDK
       if (typeof authAny.resetPasswordForEmail === "function") {
-        const res = await authAny.resetPasswordForEmail(trimmed, { redirectTo: window.location.origin });
+        const res = await authAny.resetPasswordForEmail(trimmed, { redirectTo: `${window.location.origin}/reset-password` });
         if (res?.error) throw res.error;
         toast.success("تم إرسال رابط إعادة ضبط كلمة المرور إلى بريدك (إن كان مسجلاً)");
       } else if (typeof authAny.api?.resetPasswordForEmail === "function") {
