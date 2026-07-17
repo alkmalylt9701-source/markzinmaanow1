@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,11 +23,6 @@ function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
 
-  // لم يعد يتم مسح الجلسة تلقائياً عند تحميل صفحة الدخول لتجنّب خلع الجلسات غير المقصود
-  useEffect(() => {
-    // clearStoredAuthSession(); // يمكنك إعادة تفعيلها هنا إن رغبت
-  }, []);
-
   const resetLocalAuth = async () => {
     clearStoredAuthSession();
     try {
@@ -47,7 +42,6 @@ function AuthPage() {
       return "كلمة المرور ضعيفة أو مستخدمة كثيراً. اختاري كلمة أقوى تحتوي أحرفاً كبيرة وصغيرة وأرقاماً ورمزاً خاصاً.";
     }
     if (message.includes("Password should be")) return "كلمة المرور قصيرة؛ يجب أن تكون 6 أحرف على الأقل ويفضل أن تكون أقوى.";
-    if (message.includes("Email not confirmed")) return "يجب تأكيد البريد الإلكتروني أولاً ثم تسجيل الدخول";
     if (message.includes("User already registered")) return "هذا البريد مسجل مسبقاً، استخدمي تسجيل الدخول أو زر نسيت كلمة المرور";
     if (message.includes("Signup is disabled")) return "إنشاء الحسابات غير مفعّل حالياً";
     return message;
