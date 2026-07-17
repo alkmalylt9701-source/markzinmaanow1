@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { BookOpen, LogIn, UserPlus } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { clearStoredAuthSession } from "@/utils/authCleanup";
+import { registerServiceWorker } from "@/registerServiceWorker";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({ meta: [{ title: "تسجيل الدخول - المسابقة الرمضانية" }] }),
@@ -26,6 +27,11 @@ function AuthPage() {
   // لم يعد يتم مسح الجلسة تلقائياً عند تحميل صفحة الدخول لتجنّب خلع الجلسات غير المقصود
   useEffect(() => {
     // clearStoredAuthSession(); // يمكنك إعادة تفعيلها هنا إن رغبت
+  }, []);
+
+  // سجّل الـ Service Worker عند تحميل صفحة المصادقة (إذا كانت مدعومة)
+  useEffect(() => {
+    try { registerServiceWorker(); } catch (e) { console.warn('SW register failed', e); }
   }, []);
 
   const resetLocalAuth = async () => {
