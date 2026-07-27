@@ -14,6 +14,164 @@ export type Database = {
   }
   public: {
     Tables: {
+      beneficiaries: {
+        Row: {
+          created_at: string
+          guardian: string | null
+          id: string
+          kind: string
+          name: string
+          notes: string | null
+          phone: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          guardian?: string | null
+          id?: string
+          kind: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          guardian?: string | null
+          id?: string
+          kind?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ceremony_expenses: {
+        Row: {
+          cash_amount: number
+          category: string | null
+          created_at: string
+          id: string
+          in_kind_description: string | null
+          in_kind_value: number
+          item: string
+          notes: string | null
+          receipt_path: string | null
+          supplier: string | null
+          user_id: string
+          year: string
+        }
+        Insert: {
+          cash_amount?: number
+          category?: string | null
+          created_at?: string
+          id?: string
+          in_kind_description?: string | null
+          in_kind_value?: number
+          item: string
+          notes?: string | null
+          receipt_path?: string | null
+          supplier?: string | null
+          user_id: string
+          year: string
+        }
+        Update: {
+          cash_amount?: number
+          category?: string | null
+          created_at?: string
+          id?: string
+          in_kind_description?: string | null
+          in_kind_value?: number
+          item?: string
+          notes?: string | null
+          receipt_path?: string | null
+          supplier?: string | null
+          user_id?: string
+          year?: string
+        }
+        Relationships: []
+      }
+      certificate_templates: {
+        Row: {
+          cert_type: string
+          created_at: string
+          file_path: string
+          font_size: number
+          id: string
+          label: string
+          name_x: number
+          name_y: number
+          user_id: string
+          year: string | null
+        }
+        Insert: {
+          cert_type: string
+          created_at?: string
+          file_path: string
+          font_size?: number
+          id?: string
+          label: string
+          name_x?: number
+          name_y?: number
+          user_id: string
+          year?: string | null
+        }
+        Update: {
+          cert_type?: string
+          created_at?: string
+          file_path?: string
+          font_size?: number
+          id?: string
+          label?: string
+          name_x?: number
+          name_y?: number
+          user_id?: string
+          year?: string | null
+        }
+        Relationships: []
+      }
+      certificates_issued: {
+        Row: {
+          cert_type: string
+          created_at: string
+          id: string
+          notes: string | null
+          recipient_name: string
+          template_id: string | null
+          user_id: string
+          year: string
+        }
+        Insert: {
+          cert_type: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          recipient_name: string
+          template_id?: string | null
+          user_id: string
+          year: string
+        }
+        Update: {
+          cert_type?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          recipient_name?: string
+          template_id?: string | null
+          user_id?: string
+          year?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "certificates_issued_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "certificate_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           created_at: string
@@ -81,6 +239,131 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      honorariums: {
+        Row: {
+          cash_amount: number
+          created_at: string
+          id: string
+          in_kind_description: string | null
+          in_kind_value: number
+          notes: string | null
+          recipient_kind: string
+          recipient_name: string
+          recipient_ref_id: string | null
+          user_id: string
+          year: string
+        }
+        Insert: {
+          cash_amount?: number
+          created_at?: string
+          id?: string
+          in_kind_description?: string | null
+          in_kind_value?: number
+          notes?: string | null
+          recipient_kind: string
+          recipient_name: string
+          recipient_ref_id?: string | null
+          user_id: string
+          year: string
+        }
+        Update: {
+          cash_amount?: number
+          created_at?: string
+          id?: string
+          in_kind_description?: string | null
+          in_kind_value?: number
+          notes?: string | null
+          recipient_kind?: string
+          recipient_name?: string
+          recipient_ref_id?: string | null
+          user_id?: string
+          year?: string
+        }
+        Relationships: []
+      }
+      sponsor_contributions: {
+        Row: {
+          cash_amount: number
+          created_at: string
+          id: string
+          in_kind_description: string | null
+          in_kind_value: number
+          notes: string | null
+          receipt_path: string | null
+          sponsor_id: string
+          sponsorship_areas: string[]
+          user_id: string
+          year: string
+        }
+        Insert: {
+          cash_amount?: number
+          created_at?: string
+          id?: string
+          in_kind_description?: string | null
+          in_kind_value?: number
+          notes?: string | null
+          receipt_path?: string | null
+          sponsor_id: string
+          sponsorship_areas?: string[]
+          user_id: string
+          year: string
+        }
+        Update: {
+          cash_amount?: number
+          created_at?: string
+          id?: string
+          in_kind_description?: string | null
+          in_kind_value?: number
+          notes?: string | null
+          receipt_path?: string | null
+          sponsor_id?: string
+          sponsorship_areas?: string[]
+          user_id?: string
+          year?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sponsor_contributions_sponsor_id_fkey"
+            columns: ["sponsor_id"]
+            isOneToOne: false
+            referencedRelation: "sponsors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sponsors: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          sponsor_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          sponsor_type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          sponsor_type?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       students: {
         Row: {

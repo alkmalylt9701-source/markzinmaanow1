@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CompetitionTable } from "@/components/CompetitionTable";
 import { ImportExport } from "@/components/ImportExport";
-import { Plus, Printer, Trash2, Calendar, LogOut, Save, FolderOpen } from "lucide-react";
+import { Plus, Printer, Trash2, Calendar, LogOut, Save, FolderOpen, Gift, PartyPopper, HandCoins, Award, Users } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import logo from "@/assets/logo.png";
 import { Student, HifzHistory, YearData, START_YEAR, END_YEAR } from "@/types/student";
@@ -257,10 +257,25 @@ function IndexPage() {
       <div className="container mx-auto px-4 py-6 print:hidden space-y-4">
         <div className="flex justify-center gap-2 flex-wrap">
           <Button asChild size="lg" className="gap-2 shadow-md">
-            <Link to="/documents"><FolderOpen className="h-5 w-5" /> صفحة الوثائق (صور / فيديو / إكسل)</Link>
+            <Link to="/documents"><FolderOpen className="h-5 w-5" /> الوثائق</Link>
           </Button>
           <Button asChild size="lg" variant="secondary" className="gap-2 shadow-md">
-            <Link to="/teachers">👩‍🏫 صفحة المعلمات</Link>
+            <Link to="/teachers">👩‍🏫 المعلمات</Link>
+          </Button>
+          <Button asChild size="lg" variant="secondary" className="gap-2 shadow-md">
+            <Link to="/beneficiaries"><Users className="h-5 w-5" /> الأيتام والأسر</Link>
+          </Button>
+          <Button asChild size="lg" variant="secondary" className="gap-2 shadow-md">
+            <Link to="/honorariums"><Gift className="h-5 w-5" /> الإكراميات</Link>
+          </Button>
+          <Button asChild size="lg" variant="secondary" className="gap-2 shadow-md">
+            <Link to="/ceremony"><PartyPopper className="h-5 w-5" /> مصروفات الحفل</Link>
+          </Button>
+          <Button asChild size="lg" variant="secondary" className="gap-2 shadow-md">
+            <Link to="/sponsors"><HandCoins className="h-5 w-5" /> الممولون</Link>
+          </Button>
+          <Button asChild size="lg" variant="secondary" className="gap-2 shadow-md">
+            <Link to="/certificates"><Award className="h-5 w-5" /> الشهادات</Link>
           </Button>
         </div>
 
