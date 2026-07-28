@@ -1,0 +1,750 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.5"
+  }
+  public: {
+    Tables: {
+      beneficiaries: {
+        Row: {
+          created_at: string
+          guardian: string | null
+          id: string
+          kind: string
+          name: string
+          notes: string | null
+          phone: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          guardian?: string | null
+          id?: string
+          kind: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          guardian?: string | null
+          id?: string
+          kind?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ceremony_expenses: {
+        Row: {
+          cash_amount: number
+          category: string | null
+          created_at: string
+          id: string
+          in_kind_description: string | null
+          in_kind_value: number
+          item: string
+          notes: string | null
+          receipt_path: string | null
+          supplier: string | null
+          user_id: string
+          year: string
+        }
+        Insert: {
+          cash_amount?: number
+          category?: string | null
+          created_at?: string
+          id?: string
+          in_kind_description?: string | null
+          in_kind_value?: number
+          item: string
+          notes?: string | null
+          receipt_path?: string | null
+          supplier?: string | null
+          user_id: string
+          year: string
+        }
+        Update: {
+          cash_amount?: number
+          category?: string | null
+          created_at?: string
+          id?: string
+          in_kind_description?: string | null
+          in_kind_value?: number
+          item?: string
+          notes?: string | null
+          receipt_path?: string | null
+          supplier?: string | null
+          user_id?: string
+          year?: string
+        }
+        Relationships: []
+      }
+      certificate_templates: {
+        Row: {
+          cert_type: string
+          created_at: string
+          file_path: string
+          font_size: number
+          id: string
+          label: string
+          name_x: number
+          name_y: number
+          user_id: string
+          year: string | null
+        }
+        Insert: {
+          cert_type: string
+          created_at?: string
+          file_path: string
+          font_size?: number
+          id?: string
+          label: string
+          name_x?: number
+          name_y?: number
+          user_id: string
+          year?: string | null
+        }
+        Update: {
+          cert_type?: string
+          created_at?: string
+          file_path?: string
+          font_size?: number
+          id?: string
+          label?: string
+          name_x?: number
+          name_y?: number
+          user_id?: string
+          year?: string | null
+        }
+        Relationships: []
+      }
+      certificates_issued: {
+        Row: {
+          cert_type: string
+          created_at: string
+          id: string
+          notes: string | null
+          recipient_name: string
+          template_id: string | null
+          user_id: string
+          year: string
+        }
+        Insert: {
+          cert_type: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          recipient_name: string
+          template_id?: string | null
+          user_id: string
+          year: string
+        }
+        Update: {
+          cert_type?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          recipient_name?: string
+          template_id?: string | null
+          user_id?: string
+          year?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "certificates_issued_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "certificate_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_path: string
+          file_type: string
+          id: string
+          mime_type: string | null
+          month: number
+          size_bytes: number | null
+          user_id: string
+          year: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_path: string
+          file_type: string
+          id?: string
+          mime_type?: string | null
+          month: number
+          size_bytes?: number | null
+          user_id: string
+          year: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          file_type?: string
+          id?: string
+          mime_type?: string | null
+          month?: number
+          size_bytes?: number | null
+          user_id?: string
+          year?: string
+        }
+        Relationships: []
+      }
+      hifz_history: {
+        Row: {
+          student_id: number
+          user_id: string
+          value: string
+          year_key: string
+        }
+        Insert: {
+          student_id: number
+          user_id: string
+          value?: string
+          year_key: string
+        }
+        Update: {
+          student_id?: number
+          user_id?: string
+          value?: string
+          year_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hifz_history_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      honorariums: {
+        Row: {
+          cash_amount: number
+          created_at: string
+          id: string
+          in_kind_description: string | null
+          in_kind_value: number
+          notes: string | null
+          recipient_kind: string
+          recipient_name: string
+          recipient_ref_id: string | null
+          user_id: string
+          year: string
+        }
+        Insert: {
+          cash_amount?: number
+          created_at?: string
+          id?: string
+          in_kind_description?: string | null
+          in_kind_value?: number
+          notes?: string | null
+          recipient_kind: string
+          recipient_name: string
+          recipient_ref_id?: string | null
+          user_id: string
+          year: string
+        }
+        Update: {
+          cash_amount?: number
+          created_at?: string
+          id?: string
+          in_kind_description?: string | null
+          in_kind_value?: number
+          notes?: string | null
+          recipient_kind?: string
+          recipient_name?: string
+          recipient_ref_id?: string | null
+          user_id?: string
+          year?: string
+        }
+        Relationships: []
+      }
+      sponsor_contributions: {
+        Row: {
+          cash_amount: number
+          created_at: string
+          id: string
+          in_kind_description: string | null
+          in_kind_value: number
+          notes: string | null
+          receipt_path: string | null
+          sponsor_id: string
+          sponsorship_areas: string[]
+          user_id: string
+          year: string
+        }
+        Insert: {
+          cash_amount?: number
+          created_at?: string
+          id?: string
+          in_kind_description?: string | null
+          in_kind_value?: number
+          notes?: string | null
+          receipt_path?: string | null
+          sponsor_id: string
+          sponsorship_areas?: string[]
+          user_id: string
+          year: string
+        }
+        Update: {
+          cash_amount?: number
+          created_at?: string
+          id?: string
+          in_kind_description?: string | null
+          in_kind_value?: number
+          notes?: string | null
+          receipt_path?: string | null
+          sponsor_id?: string
+          sponsorship_areas?: string[]
+          user_id?: string
+          year?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sponsor_contributions_sponsor_id_fkey"
+            columns: ["sponsor_id"]
+            isOneToOne: false
+            referencedRelation: "sponsors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sponsors: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          sponsor_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          sponsor_type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          sponsor_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      students: {
+        Row: {
+          created_at: string
+          id: number
+          name: string
+          teacher: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          name: string
+          teacher?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          name?: string
+          teacher?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      teacher_annual_bonuses: {
+        Row: {
+          cash_amount: number
+          created_at: string
+          id: string
+          in_kind_description: string | null
+          in_kind_value: number
+          notes: string | null
+          teacher_id: string
+          user_id: string
+          year: string
+        }
+        Insert: {
+          cash_amount?: number
+          created_at?: string
+          id?: string
+          in_kind_description?: string | null
+          in_kind_value?: number
+          notes?: string | null
+          teacher_id: string
+          user_id: string
+          year: string
+        }
+        Update: {
+          cash_amount?: number
+          created_at?: string
+          id?: string
+          in_kind_description?: string | null
+          in_kind_value?: number
+          notes?: string | null
+          teacher_id?: string
+          user_id?: string
+          year?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_annual_bonuses_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teacher_monthly_bonuses: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          month: number
+          notes: string | null
+          teacher_id: string
+          user_id: string
+          year: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          id?: string
+          month: number
+          notes?: string | null
+          teacher_id: string
+          user_id: string
+          year: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          month?: number
+          notes?: string | null
+          teacher_id?: string
+          user_id?: string
+          year?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_monthly_bonuses_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teacher_year_active: {
+        Row: {
+          created_at: string
+          id: string
+          teacher_id: string
+          user_id: string
+          year: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          teacher_id: string
+          user_id: string
+          year: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          teacher_id?: string
+          user_id?: string
+          year?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_year_active_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teachers: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_settings: {
+        Row: {
+          active_year: string
+          user_id: string
+        }
+        Insert: {
+          active_year?: string
+          user_id: string
+        }
+        Update: {
+          active_year?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      year_data: {
+        Row: {
+          annual: string
+          base_hifz: string
+          grade: string
+          memorization: string
+          parts: string
+          prize: string
+          rank: string
+          recitation: string
+          status_prize: string
+          student_id: number
+          teacher: string
+          total: string
+          total_hifz: string
+          user_id: string
+          year: string
+        }
+        Insert: {
+          annual?: string
+          base_hifz?: string
+          grade?: string
+          memorization?: string
+          parts?: string
+          prize?: string
+          rank?: string
+          recitation?: string
+          status_prize?: string
+          student_id: number
+          teacher?: string
+          total?: string
+          total_hifz?: string
+          user_id: string
+          year: string
+        }
+        Update: {
+          annual?: string
+          base_hifz?: string
+          grade?: string
+          memorization?: string
+          parts?: string
+          prize?: string
+          rank?: string
+          recitation?: string
+          status_prize?: string
+          student_id?: number
+          teacher?: string
+          total?: string
+          total_hifz?: string
+          user_id?: string
+          year?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "year_data_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+}
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const

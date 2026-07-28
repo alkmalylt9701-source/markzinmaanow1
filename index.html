@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>المسابقة الرمضانية</title>
+
+    <!-- PWA manifest and tags -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <!-- The app's main entry is application-specific. If you already have a main script, keep it. -->
+    <script type="module">
+      // Attempt to load the project's main entry if present. This is a harmless fallback.
+      (async () => {
+        try {
+          // Common entry names: /src/main.tsx, /src/main.ts, /src/entry-client.tsx
+          await import('/src/main.tsx');
+        } catch (e1) {
+          try { await import('/src/entry-client.tsx'); } catch (e2) { /* entry not found; app may be SSR or use different entry */ }
+        }
+      })();
+    </script>
+  </body>
+</html>
