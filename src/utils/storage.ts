@@ -96,7 +96,26 @@ export const deleteStudent = async (id: number) => {
 export const deleteAllStudents = async () => {
   const userId = await getUserId();
   if (!userId) return;
-  await supabase.from('students').delete().eq('user_id', userId);
+  const tables = [
+    'hifz_history', 'year_data',
+    'sponsor_contributions', 'sponsors',
+    'teacher_monthly_bonuses', 'teacher_annual_bonuses',
+    'teacher_year_active', 'teachers',
+    'honorariums', 'ceremony_expenses', 'beneficiaries',
+    'certificates_issued', 'certificate_templates',
+    'documents',
+    'students',
+  ] as const;
+  for (const t of tables) {
+    await supabase.from(t as any).delete().eq('user_id', userId);
+  }
+  try {
+    Object.keys(localStorage).forEach((k) => {
+      if (k.startsWith('quran-') || k.startsWith('filter-') || k.startsWith('sort-')) {
+        localStorage.removeItem(k);
+      }
+    });
+  } catch {}
 };
 
 export const saveHifzHistory = async (studentId: number, history: HifzHistory) => {
