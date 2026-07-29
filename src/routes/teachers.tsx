@@ -279,13 +279,14 @@ function TeachersPage() {
               const list = teacherStudents(t.name);
               return (
                 <div key={t.id} className="bg-card border border-border rounded-lg shadow-sm overflow-hidden">
-                  <div className="flex items-center gap-2 px-3 py-2 bg-muted/30 border-b border-border flex-wrap">
-                    <button onClick={() => toggleExpand(t.id)} className="flex items-center gap-1 font-bold text-primary hover:underline">
+                  <div className="px-3 py-2 bg-muted/30 border-b border-border">
+                    <button onClick={() => toggleExpand(t.id)} className="flex items-center gap-1 font-bold text-primary hover:underline w-full">
                       {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
                       {t.name}
                       <span className="text-xs bg-primary/15 text-primary rounded-full px-2 py-0.5 mr-2">{list.length} طالبة</span>
                     </button>
-                    <div className="mr-auto flex flex-wrap gap-1">
+                    <div className="mt-2 flex flex-wrap gap-1">
+
                       <Button asChild variant="outline" size="sm" className="gap-1 h-8" title="إكرامية شهرية">
                         <Link to="/teachers/$teacherId" params={{ teacherId: t.id }} hash="monthly">
                           <Gift className="h-3.5 w-3.5" /> شهرية
