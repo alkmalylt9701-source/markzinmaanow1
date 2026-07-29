@@ -11,9 +11,14 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as CertificatesRouteImport } from './routes/certificates'
 import { Route as DocumentsRouteImport } from './routes/documents'
+import { Route as ExpensesRouteImport } from './routes/expenses'
+import { Route as HonorariumsRouteImport } from './routes/honorariums'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as SponsorsRouteImport } from './routes/sponsors'
 import { Route as TeachersRouteImport } from './routes/teachers'
+import { Route as SponsorsReportRouteImport } from './routes/sponsors.report'
 import { Route as TeachersTeacherIdRouteImport } from './routes/teachers.$teacherId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -26,9 +31,24 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CertificatesRoute = CertificatesRouteImport.update({
+  id: '/certificates',
+  path: '/certificates',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DocumentsRoute = DocumentsRouteImport.update({
   id: '/documents',
   path: '/documents',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExpensesRoute = ExpensesRouteImport.update({
+  id: '/expenses',
+  path: '/expenses',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HonorariumsRoute = HonorariumsRouteImport.update({
+  id: '/honorariums',
+  path: '/honorariums',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -36,10 +56,20 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SponsorsRoute = SponsorsRouteImport.update({
+  id: '/sponsors',
+  path: '/sponsors',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TeachersRoute = TeachersRouteImport.update({
   id: '/teachers',
   path: '/teachers',
   getParentRoute: () => rootRouteImport,
+} as any)
+const SponsorsReportRoute = SponsorsReportRouteImport.update({
+  id: '/report',
+  path: '/report',
+  getParentRoute: () => SponsorsRoute,
 } as any)
 const TeachersTeacherIdRoute = TeachersTeacherIdRouteImport.update({
   id: '/$teacherId',
@@ -50,26 +80,41 @@ const TeachersTeacherIdRoute = TeachersTeacherIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/certificates': typeof CertificatesRoute
   '/documents': typeof DocumentsRoute
+  '/expenses': typeof ExpensesRoute
+  '/honorariums': typeof HonorariumsRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/sponsors': typeof SponsorsRouteWithChildren
   '/teachers': typeof TeachersRouteWithChildren
+  '/sponsors/report': typeof SponsorsReportRoute
   '/teachers/$teacherId': typeof TeachersTeacherIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/certificates': typeof CertificatesRoute
   '/documents': typeof DocumentsRoute
+  '/expenses': typeof ExpensesRoute
+  '/honorariums': typeof HonorariumsRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/sponsors': typeof SponsorsRouteWithChildren
   '/teachers': typeof TeachersRouteWithChildren
+  '/sponsors/report': typeof SponsorsReportRoute
   '/teachers/$teacherId': typeof TeachersTeacherIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/certificates': typeof CertificatesRoute
   '/documents': typeof DocumentsRoute
+  '/expenses': typeof ExpensesRoute
+  '/honorariums': typeof HonorariumsRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/sponsors': typeof SponsorsRouteWithChildren
   '/teachers': typeof TeachersRouteWithChildren
+  '/sponsors/report': typeof SponsorsReportRoute
   '/teachers/$teacherId': typeof TeachersTeacherIdRoute
 }
 export interface FileRouteTypes {
@@ -77,33 +122,52 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/certificates'
     | '/documents'
+    | '/expenses'
+    | '/honorariums'
     | '/reset-password'
+    | '/sponsors'
     | '/teachers'
+    | '/sponsors/report'
     | '/teachers/$teacherId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
+    | '/certificates'
     | '/documents'
+    | '/expenses'
+    | '/honorariums'
     | '/reset-password'
+    | '/sponsors'
     | '/teachers'
+    | '/sponsors/report'
     | '/teachers/$teacherId'
   id:
     | '__root__'
     | '/'
     | '/auth'
+    | '/certificates'
     | '/documents'
+    | '/expenses'
+    | '/honorariums'
     | '/reset-password'
+    | '/sponsors'
     | '/teachers'
+    | '/sponsors/report'
     | '/teachers/$teacherId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
+  CertificatesRoute: typeof CertificatesRoute
   DocumentsRoute: typeof DocumentsRoute
+  ExpensesRoute: typeof ExpensesRoute
+  HonorariumsRoute: typeof HonorariumsRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  SponsorsRoute: typeof SponsorsRouteWithChildren
   TeachersRoute: typeof TeachersRouteWithChildren
 }
 
@@ -123,11 +187,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/certificates': {
+      id: '/certificates'
+      path: '/certificates'
+      fullPath: '/certificates'
+      preLoaderRoute: typeof CertificatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/documents': {
       id: '/documents'
       path: '/documents'
       fullPath: '/documents'
       preLoaderRoute: typeof DocumentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/expenses': {
+      id: '/expenses'
+      path: '/expenses'
+      fullPath: '/expenses'
+      preLoaderRoute: typeof ExpensesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/honorariums': {
+      id: '/honorariums'
+      path: '/honorariums'
+      fullPath: '/honorariums'
+      preLoaderRoute: typeof HonorariumsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -137,12 +222,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sponsors': {
+      id: '/sponsors'
+      path: '/sponsors'
+      fullPath: '/sponsors'
+      preLoaderRoute: typeof SponsorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/teachers': {
       id: '/teachers'
       path: '/teachers'
       fullPath: '/teachers'
       preLoaderRoute: typeof TeachersRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/sponsors/report': {
+      id: '/sponsors/report'
+      path: '/report'
+      fullPath: '/sponsors/report'
+      preLoaderRoute: typeof SponsorsReportRouteImport
+      parentRoute: typeof SponsorsRoute
     }
     '/teachers/$teacherId': {
       id: '/teachers/$teacherId'
@@ -153,6 +252,18 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface SponsorsRouteChildren {
+  SponsorsReportRoute: typeof SponsorsReportRoute
+}
+
+const SponsorsRouteChildren: SponsorsRouteChildren = {
+  SponsorsReportRoute: SponsorsReportRoute,
+}
+
+const SponsorsRouteWithChildren = SponsorsRoute._addFileChildren(
+  SponsorsRouteChildren,
+)
 
 interface TeachersRouteChildren {
   TeachersTeacherIdRoute: typeof TeachersTeacherIdRoute
@@ -169,8 +280,12 @@ const TeachersRouteWithChildren = TeachersRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
+  CertificatesRoute: CertificatesRoute,
   DocumentsRoute: DocumentsRoute,
+  ExpensesRoute: ExpensesRoute,
+  HonorariumsRoute: HonorariumsRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  SponsorsRoute: SponsorsRouteWithChildren,
   TeachersRoute: TeachersRouteWithChildren,
 }
 export const routeTree = rootRouteImport
